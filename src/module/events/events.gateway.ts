@@ -116,7 +116,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // }
 
 
-  @Cron("0 16 * * *") 
+  @Cron("0 15 * * *") 
    async funhandleAgentsSenDataToTelegram() {
         const cutRanges = ['E3:K', 'N3:T', 'W3:AC', 'AF3:AL', 'AO3:AU', 'AX3:BD', 'BG3:BM', 'BP3:BV', 'BY3:CE', 'CH3:CN'];
         for (const e of cutRanges) {
