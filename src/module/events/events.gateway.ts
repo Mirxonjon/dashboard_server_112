@@ -62,20 +62,21 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 
 
-  // @Cron(CronExpression.EVERY_10_SECONDS) 
-  // async handleAgentsAtTheMomentAddCash() {
-  //   // this.bot.telegram.sendMessage('@mirxonjonismonov','ishladi')
-  //   // const operatorsWhereatThemoment :any = await Promise.all(await operatorsWhere(this.bot));
+  @Cron(CronExpression.EVERY_10_SECONDS) 
+  async handleAgentsAtTheMomentAddCash() {
+    this.bot.telegram.sendMessage('@tessssssttttt1','ishladi')
+    const operatorsWhereatThemoment :any = await Promise.all(await operatorsWhere(this.bot));
+    console.log(operatorsWhereatThemoment);
+    
+    await this.#_cache.set('lockOperators' , operatorsWhereatThemoment ,3600000)
 
-  //   // await this.#_cache.set('lockOperators' , operatorsWhereatThemoment ,3600000)
-
-  // }
+  }
  
 
   @SubscribeMessage('agentsLockAtTheMoment')
   async handleAgentsAtTheMoment() {
-    // const data = await this.#_cache.get('lockOperators')
-    // return data;
+    const data = await this.#_cache.get('lockOperators')
+    return data;
   }
 
   @SubscribeMessage('agentsLock')

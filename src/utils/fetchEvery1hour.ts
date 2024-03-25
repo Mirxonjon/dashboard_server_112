@@ -8,6 +8,10 @@ import { getBotToken } from 'nestjs-telegraf';
 import { agentslockEntity } from 'src/entities/agentslock.entity';
 import { Telegraf, Context } from 'telegraf';
 import { Update } from 'telegraf/typings/core/types/typegram';
+import * as dotenv from 'dotenv';
+// console.log(process.env.TG_Chanel_ID);
+
+
 
 export const fetchStatisticByGroup = async () => {
   const findGroups = await GroupsEntity.find();
@@ -108,17 +112,20 @@ export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<a
        <urn:PrCtGroupContent2>
           <!--Optional:-->
           <urn:PrCtGroupContent2Req>
-             <urn:serviceId>3305</urn:serviceId>
-             <urn:groupId>4395</urn:groupId>
+             <urn:serviceId>11</urn:serviceId>
+             <urn:groupId>1</urn:groupId>
           </urn:PrCtGroupContent2Req>
        </urn:PrCtGroupContent2>
     </soapenv:Body>
  </soapenv:Envelope>`;
 
-  const { data } = await axios.post('http://192.168.42.92:8081/ct?wsdl', xml, {
+  const { data } = await axios.post('http://10.145.32.3:15358/ct?wsdl', xml, {
     headers: sampleHeaders,
   });
   const convertedData = await parseStringPromise(data);
+// console.log(  convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+//   'ct:PrCtGroupContent2Resp'
+// ][0]['ct:agents'][0]['ct:TmCtAgentInGroup2']);
 
   const agents =
     convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
@@ -151,7 +158,7 @@ export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<a
         
           
   if(findAgent.TgMsgId == 'null' && agents[i]['ct:agentStateDuration'][0] < 720 ) {
-    data =  await  bot.telegram.sendMessage('@mirxonjonismonov' , ` ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} превысил 10-минутный перерыв`)
+    data =  await  bot.telegram.sendMessage(process.env.TG_Chanel_ID , ` ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} превысил 10-минутный перерыв`)
      await agentsDataStateEntity.update(
       { id: findAgent.id },
       { TgMsgSentTime : agents[i]['ct:agentStateDuration'][0],
@@ -161,7 +168,7 @@ export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<a
  
     
  }else if(agents[i]['ct:agentStateDuration'][0] - +findAgent.TgMsgSentTime > 300 ) {
-    data = await bot.telegram.sendMessage('@mirxonjonismonov', `Оператор ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} всё ещё не включился на линию! ${formatSecondsToTime(agents[i]['ct:agentStateDuration'][0])}`, {reply_to_message_id : +findAgent.TgMsgId})
+    data = await bot.telegram.sendMessage(process.env.TG_Chanel_ID, `Оператор ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} всё ещё не включился на линию! ${formatSecondsToTime(agents[i]['ct:agentStateDuration'][0])}`, {reply_to_message_id : +findAgent.TgMsgId})
     await agentsDataStateEntity.update(
       { id: findAgent.id },
       { TgMsgSentTime : agents[i]['ct:agentStateDuration'][0],
@@ -289,7 +296,7 @@ export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<a
               '6': '🏃',
               '7': '🧑‍🎓',
             }
-              await bot.telegram.sendMessage('@mirxonjonismonov', `   ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} поменял статус ${ message[findAgent.lockCause]} на ${ message[agents[i]['ct:lockCause'][0]]}`)
+              await bot.telegram.sendMessage(process.env.TG_Chanel_ID, `   ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} поменял статус ${ message[findAgent.lockCause]} на ${ message[agents[i]['ct:lockCause'][0]]}`)
           }
          await agentsDataStateEntity.update(
             { id: findAgent.id },
