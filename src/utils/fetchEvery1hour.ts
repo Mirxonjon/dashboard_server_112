@@ -9,7 +9,6 @@ import { agentslockEntity } from 'src/entities/agentslock.entity';
 import { Telegraf, Context } from 'telegraf';
 import { Update } from 'telegraf/typings/core/types/typegram';
 import * as dotenv from 'dotenv';
-// console.log(process.env.TG_Chanel_ID);
 
 
 

@@ -21,7 +21,7 @@ export class AgentsController {
   @ApiNotFoundResponse()
   @ApiOkResponse()
   async sentMessage() {
-    return await this.#_service.funhandleAgentsSenDataToTelegram();
+    return await this.#_service.handleAgentsSenDataToTelegram();
   }
     @Get('allBlock')
   @ApiBadRequestResponse()
@@ -43,64 +43,8 @@ export class AgentsController {
     return await this.#_service.filterAll(name , operator_number , status);
   }
 
-  @Post('create/service')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: [
-        'service_id',
-      ],
-      properties: {
-        service_id: {
-          type: 'string',
-          default: 'acds',
-        },
-        
-      },
-    },
-  })
-  async createService(@Body() body: {service_id : string})  {
-    return this.#_service.createService(body)        
-  }
 
-  @Post('create/group')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: [
-        'service_id',
-        'group_id',
-        'name',
-        'title'
-      ],
-      properties: {
-        service_id: {
-          type: 'string',
-          default: 'acds',
-        },
-        group_id: {
-          type: 'string',
-          default: 'acds',
-        },
-        name: {
-          type: 'string',
-          default: 'acds',
-        }, 
-        title: {
-          type: 'string',
-          default: 'acds',
-        },
-        
-      },
-    },
-  })
-  async createGroup(@Body() body: {service_id : string,group_id : string,name : string,title : string})  {
-    return this.#_service.createGroup(body)        
-  }
-
-  @Patch('/updateAgent/:id')
+  @Patch('/updateAgentSupervazer/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBody({
     schema: {

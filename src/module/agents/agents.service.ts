@@ -51,9 +51,6 @@ export class AgentsService {
     },
 
 })
-console.log(results);
-
-
 
     const totalPages = Math.ceil(total / pageSize);
 
@@ -88,44 +85,7 @@ console.log(results);
 
         return filteragents
     }
-   async  createService(body: {service_id : string} ) {
-    await ServicesEntity.createQueryBuilder()
-    .insert()
-    .into(ServicesEntity)
-    .values({
-      service_id: body.service_id
-    })
-    .execute()
-    .catch((e) => {
-      // console.log(e);
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-    });
-
-    }
-
-    async  createGroup(body: {service_id : string,group_id : string,name : string,title : string} ) {
-      const  findService = await ServicesEntity.findOneBy({id:body.service_id})
-
-      if(!findService) {
-        throw new HttpException('Not Found Service', HttpStatus.BAD_REQUEST);
-        
-      }
-      await GroupsEntity.createQueryBuilder()
-      .insert()
-      .into(GroupsEntity)
-      .values({
-        name :body.name,
-        title: body.title,
-        group_id: body.group_id,
-        servic : body.service_id as any
-      })
-      .execute()
-      .catch((e) => {
-        // console.log(e);
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-      });
   
-      }
 
       async updateAgent(id : string , body: {status: boolean}) {
         const findAgent = await agentsDataStateEntity.findOne({
@@ -152,7 +112,7 @@ console.log(results);
 
 
       // @Cron(CronExpression.EVERY_5_MINUTES) 
-      async funhandleAgentsSenDataToTelegram() {
+      async handleAgentsSenDataToTelegram() {
         const cutRanges = ['E3:K', 'N3:T', 'W3:AC', 'AF3:AL', 'AO3:AU', 'AX3:BD', 'BG3:BM', 'BP3:BV', 'BY3:CE', 'CH3:CN'];
         for (const e of cutRanges) {
           const sheets = await readSheets(e);
@@ -163,12 +123,10 @@ console.log(results);
               sentMessagedata += `${e[0]}${e[1]} ${e[2]} ${e[3]} ${e[6]}\n`;
             }
           });
-          // console.log(sentMessagedata);
       
           let cuttext = await splitTextIntoChunks(sentMessagedata, 30, this.bot);
-          // Xabarlar orasida kutish (delay) qo'shish
-          await new Promise(resolve => setTimeout(resolve, 120000)); // 1 soniya kutish
-          // console.log(e);
+          await new Promise(resolve => setTimeout(resolve, 120000));
+
           
         }
         return true;
