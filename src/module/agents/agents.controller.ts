@@ -23,7 +23,7 @@ export class AgentsController {
   async sentMessage() {
     return await this.#_service.handleAgentsSenDataToTelegram();
   }
-    @Get('allBlock')
+  @Get('allBlock')
   @ApiBadRequestResponse()
   @ApiNotFoundResponse()
   @ApiOkResponse()
