@@ -60,6 +60,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   //   fetchStatisticByGroup()
   // }
 
+  @Cron("59 18 * * *") 
+  fetchdata1() {
+    console.log('okkkk' , new Date());
+    fetchStatisticByGroup()
+  }
+
 
 
   @Cron(CronExpression.EVERY_10_SECONDS) 
@@ -87,31 +93,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async handleAgentsAtTheMomentGroupQueue() {
+    // console.log('okkk');
+    
     const GroupQueuesAtThemoment : any = await Promise.all(await Groupqueue());
-
+// console.log('okkk' , GroupQueuesAtThemoment);
     await this.#_cache.set('GroupQueue' , GroupQueuesAtThemoment ,3600000)
 
   }
-
-  // @Cron(CronExpression.EVERY_MINUTE) 
-  // async handleAgentsSenDataToTelegram() {
-  //   const cutRanges = ['E3:K','N3:T','W3:AC','AF3:AL','AO3:AU','AX3:BD','BG3:BM','BP3:BV','BY3:CE','CH3:CN']
-  //    cutRanges.forEach(async e => {
-  //     const sheets = await readSheets(e)
-  //     // console.log(sheets);
-  //     let sentMessagedata = `${sheets[0]} \n ${sheets[2]} \n ${sheets[3]} \n`
-  //     sheets.forEach((e,i) => {
-  //       if(i > 4 && e?.length && e[0]) {
-  
-  //         sentMessagedata += `${e[0]}${e[1]} ${e[2]} ${e[3]} ${e[6]}\n`
-  //       }
-  //     })
-  //     console.log(sentMessagedata);
-      
-  //     // let cuttext = await splitTextIntoChunks(sentMessagedata , 30 ,this.bot)
-  //     return true
-  //   } )
-  // }
 
 
   @Cron("0 15 * * *") 
@@ -140,112 +128,9 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
    return data
   }
 
-  @SubscribeMessage('dataoldMethod')
-  async handleData(@MessageBody('id') id: number) {
-    id = 2012;
-
-    const findGroups = await GroupsEntity.find({
-      relations: {
-        servic: true,
-      },
-    });
-    const resultPromises = findGroups.map(async (e) => {
-      const sampleHeaders = {
-        'user-agent': 'sampleTest',
-        'Content-Type': 'text/xml;charset=UTF-8',
-        soapAction: 'urn:ct/ctPortType/PrCtAgentsRequest',
-      };
-      const xml = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:ct">
-        <soapenv:Header/>
-        <soapenv:Body>
-           <urn:PrCtGroupContent2>
-              <!--Optional:-->
-              <urn:PrCtGroupContent2Req>
-                 <urn:serviceId>${e.servic.service_id}</urn:serviceId>
-                 <urn:groupId>${e.group_id}</urn:groupId>
-              </urn:PrCtGroupContent2Req>
-           </urn:PrCtGroupContent2>
-        </soapenv:Body>
-     </soapenv:Envelope>`;
-
-      const { data } = await axios.post(
-        'http://192.168.42.92:8081/ct?wsdl',
-        xml,
-        { headers: sampleHeaders },
-      );
-      const convertedData = await parseStringPromise(data);
-
-      const callQueuesize =
-        convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
-          'ct:PrCtGroupContent2Resp'
-        ][0]['ct:callQueueSize'][0];
-      const agents =
-        convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
-          'ct:PrCtGroupContent2Resp'
-        ][0]['ct:agents'][0]['ct:TmCtAgentInGroup2'];
-      let busy = 0;
-      let free = 0;
-      let block = 0;
-
-      for (let i = 0; i < agents?.length; i++) {
-        if (
-          agents[i]['ct:agentState'] == 3 ||
-          (agents[i]['ct:agentState'] == 4 && agents[i]['ct:cgpn'] != '')
-        ) {
-          busy++;
-        } else if (agents[i]['ct:agentState'] == 2) {
-          free++;
-        } else if (agents[i]['ct:agentState'] == 4) {
-          block++;
-        }
-      }
-
-      return {
-        goup_id: e.group_id,
-        title: e.title,
-        queue: callQueuesize,
-        online: busy + free + block,
-        in_job: busy,
-        free: free,
-        locked: block,
-      };
-    });
-    const results = await Promise.all(resultPromises);
- const sortedData = results?.sort((a, b) => +b.queue - +a.queue)
-
-    return sortedData;
-  }
-
-  // @SubscribeMessage('agentslockdate')
-  // async handleLockAgent(@MessageBody('id') id: number) {
-  //   let pageNumber = 1
-  //   let pageSize = 50
-  //   const offset = (pageNumber - 1) * pageSize;
-
-  //   const [results, total] = await agentslockEntity.findAndCount({
-  //     order: {
-  //       create_data: 'DESC',
-  //     },
-  //     skip: offset,
-  //     take: pageSize,
-  //   });
-
-  //   const totalPages = Math.ceil(total / pageSize);
-
-  //   return {
-  //     results,
-  //     pagination: {
-  //       currentPage: pageNumber,
-  //       totalPages,
-  //       pageSize,
-  //       totalItems: total,
-  //     },
-  //   };
-  // }
   
-  @SubscribeMessage('statictik')
+  // @SubscribeMessage('statictik')
   async handleStatictikData(@MessageBody() data: string) {
-    // console.log(data);
 
     const findStatistik: any = await dataGroupEntity.find({
       order: {

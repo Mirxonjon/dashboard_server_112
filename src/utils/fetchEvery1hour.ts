@@ -16,11 +16,11 @@ export const fetchStatisticByGroup = async () => {
   const findGroups = await GroupsEntity.find();
 
   findGroups.forEach(async (e) => {
-    const sampleHeaders = {
-      'user-agent': 'sampleTest',
-      'Content-Type': 'text/xml;charset=UTF-8',
-      soapAction: 'urn:ct/ctPortType/PrCtGetStatisticTlvRequest',
-    };
+    // const sampleHeaders = {
+    //   'user-agent': 'sampleTest',
+    //   'Content-Type': 'text/xml;charset=UTF-8',
+    //   soapAction: 'urn:ct/ctPortType/PrCtGetStatisticTlvRequest',
+    // };
     const xml = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:ct">
       <soapenv:Header/>
       <soapenv:Body>
@@ -36,9 +36,9 @@ export const fetchStatisticByGroup = async () => {
    </soapenv:Envelope>`;
 
     const { data } = await axios.post(
-      'http://192.168.42.92:8081/ct?wsdl',
+      'http://10.145.32.3:15358/ct?wsdl',
       xml,
-      { headers: sampleHeaders },
+      // { headers: sampleHeaders },
     );
     const convertedData = await parseStringPromise(data);
 
@@ -84,6 +84,9 @@ export const fetchStatisticByGroup = async () => {
       ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
         'ct:TmStatDataValueTlv'
       ][39]['ct:strValue'][0];
+
+      console.log('okkk');
+      
 
     dataGroupEntity.save({
       group_id: e.group_id,

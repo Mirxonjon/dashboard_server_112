@@ -11,6 +11,17 @@ export class ServicesController {
   }
 
 
+  @Get('statistik')
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse()
+  @ApiOkResponse()
+  async findAll(
+    @Query('fromDate') fromDate: string,
+    @Query('untilDate') untilDate: string,
+  ) {
+    return await this.#_service.findStatistick(fromDate, untilDate);
+  }
+
 
   @Post('create/service')
   @HttpCode(HttpStatus.CREATED)
