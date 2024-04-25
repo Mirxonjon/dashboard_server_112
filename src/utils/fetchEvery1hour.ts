@@ -85,7 +85,7 @@ export const fetchStatisticByGroup = async () => {
         'ct:TmStatDataValueTlv'
       ][39]['ct:strValue'][0];
 
-      console.log('okkk');
+      // console.log('okkk');
       
 
     dataGroupEntity.save({

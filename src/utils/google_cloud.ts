@@ -33,10 +33,10 @@ export const googleCloud = (file: any | any[]) => {
   return imageLink;
 };
 
-export const readSheets = async (rangeCut : string) => {
+export const readSheets = async (sheetId: string , rangeName : string, rangeCut : string) => {
   const sheets = google.sheets({ version: 'v4', auth });
-  const spreadsheetId = '1Q3tJgQZUIdXKBuORujJcQHwvCYXuoiPb39o8ZlbD8f4';
-  const range = `Фиксация прослушивания!${rangeCut}`;  // Specifies the range to read.
+  const spreadsheetId = sheetId;
+  const range = `${rangeName}!${rangeCut}`;  // Specifies the range to read.
 
   try {
       const response = await sheets.spreadsheets.values.get({
@@ -46,6 +46,40 @@ export const readSheets = async (rangeCut : string) => {
       return rows;  // Returns the rows.
   } catch (error) {
       console.error('error sheet', error);  // Logs errors.
+  }
+}
+
+// export const readSheets = async (rangeCut : string) => {
+//   const sheets = google.sheets({ version: 'v4', auth });
+//   const spreadsheetId = '1Q3tJgQZUIdXKBuORujJcQHwvCYXuoiPb39o8ZlbD8f4';
+//   const range = `Фиксация прослушивания!${rangeCut}`;  // Specifies the range to read.
+
+//   try {
+//       const response = await sheets.spreadsheets.values.get({
+//           spreadsheetId, range
+//       });
+//       const rows = response.data.values;  // Extracts the rows from the response.
+//       return rows;  // Returns the rows.
+//   } catch (error) {
+//       console.error('error sheet', error);  // Logs errors.
+//   }
+// }
+
+export const readSheet = async (rangeCut : string) => {
+  const sheets = google.sheets({ version: 'v4', auth });
+  const spreadsheetId = '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow';
+  const range = 'grafik!A1:AH';  // Specifies the range to read.
+
+  
+
+  try {
+      const response = await sheets.spreadsheets.values.get({
+          spreadsheetId, range
+      });
+      const rows = response.data.values;  // Extracts the rows from the response.
+      return rows;  // Returns the rows.
+  } catch (error) {
+      console.error('error', error);  // Logs errors.
   }
 }
 

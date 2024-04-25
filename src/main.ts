@@ -9,9 +9,14 @@ import * as cors from 'cors';
 import { fetchEvery5s } from './utils/fetcheEvery5s';
 import { fetchStatisticByGroup , operatorsWhere } from './utils/fetchEvery1hour';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { readSheet, readSheets } from './utils/google_cloud';
+// import { readSheetdoc } from './utils/google_doc';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+
+
   app.use(
     cors({
       origin: '*',
@@ -21,7 +26,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new ErrorHandle());
   app.setGlobalPrefix('api/v1');
-
+  
   const config = app.get(ConfigService);
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

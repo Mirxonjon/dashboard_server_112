@@ -16,7 +16,7 @@ import {  parseStringPromise } from 'xml2js';
 import { dataGroupEntity } from 'src/entities/dataGroup.entity';
 import {
   convertDate,
-  convertorDateToDay,
+  // convertorDateToDay,
   splitTextIntoChunks,
 } from 'src/utils/converters';
 import { agentslockEntity } from 'src/entities/agentslock.entity';
@@ -54,15 +54,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.#_cache = cache
   }
 
-  // @Cron("59 23 * * *") 
-  // fetchdata1() {
-  //   console.log('okkkk' , new Date());
-  //   fetchStatisticByGroup()
-  // }
+
 
   @Cron("59 18 * * *") 
   fetchdata1() {
-    console.log('okkkk' , new Date());
+    // console.log('okkkk' , new Date());
     fetchStatisticByGroup()
   }
 
@@ -105,8 +101,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @Cron("0 15 * * *") 
    async funhandleAgentsSenDataToTelegram() {
         const cutRanges = ['E3:K', 'N3:T', 'W3:AC', 'AF3:AL', 'AO3:AU', 'AX3:BD', 'BG3:BM', 'BP3:BV', 'BY3:CE', 'CH3:CN'];
+        const sheetId : string = '1Q3tJgQZUIdXKBuORujJcQHwvCYXuoiPb39o8ZlbD8f4' 
+        const rangeName : string =  'Фиксация прослушивания'
         for (const e of cutRanges) {
-          const sheets = await readSheets(e);
+          const sheets = await readSheets(sheetId,rangeName,e);
           let sentMessagedata = `${sheets[0]} \n ${sheets[2]} \n ${sheets[3]} \n`;
           sheets.forEach((e, i) => {
             if (i > 4 && e?.length && e[0]) {
@@ -334,6 +332,11 @@ arrdate.forEach(e =>{
       sumQueueDispatchedCallCoun,
     };
     // console.log(finGroupStatic);
+
+
+
+
+
   }
 
   handleDisconnect(client: Socket) {
