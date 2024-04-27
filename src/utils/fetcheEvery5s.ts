@@ -84,9 +84,8 @@ export const Groupqueue = async () => {
       servic: true,
     },
   });
-  
-  const resultPromises = findGroups.map(async (e) => {
 
+  const resultPromises = findGroups.map(async (e) => {
     const xml = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:ct">
     <soapenv:Header/>
     <soapenv:Body>
@@ -100,13 +99,8 @@ export const Groupqueue = async () => {
     </soapenv:Body>
  </soapenv:Envelope>`;
 
-    const { data } = await axios.post(
-      'http://10.145.32.3:15358/ct?wsdl',
-      xml,
+    const { data } = await axios.post('http://10.145.32.3:15358/ct?wsdl', xml);
 
-    );
-
-    
     const convertedData = await parseStringPromise(data);
 
     const callQueuesize =
@@ -130,18 +124,16 @@ export const Groupqueue = async () => {
         (agents[i]['ct:agentState'] == 4 && agents[i]['ct:cgpn'] != '')
       ) {
         busy++;
-        busyAgents.push(agents[i])
-
+        busyAgents.push(agents[i]);
       } else if (agents[i]['ct:agentState'] == 2) {
         free++;
-        freeAgents.push(agents[i])
-
+        freeAgents.push(agents[i]);
       } else if (agents[i]['ct:agentState'] == 4) {
         block++;
-        blockAgenst.push(agents[i])
+        blockAgenst.push(agents[i]);
       }
     }
-  
+
     return {
       goup_id: e.group_id,
       title: e.title,
@@ -152,7 +144,7 @@ export const Groupqueue = async () => {
       locked: block,
       busyAgents,
       freeAgents,
-      blockAgenst
+      blockAgenst,
     };
   });
   const results = await Promise.all(resultPromises);
@@ -160,5 +152,4 @@ export const Groupqueue = async () => {
   // const sortedData = results?.sort((a, b) => +b.queue - +a.queue)
 
   return results;
-}
-
+};

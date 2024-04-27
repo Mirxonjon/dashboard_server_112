@@ -49,7 +49,7 @@ export class agentslockEntity extends BaseEntity {
 
   @Column({
     type: 'character varying',
-    nullable:true
+    nullable: true,
   })
   lastAgentStateDuration: number;
   @Column({
@@ -59,15 +59,14 @@ export class agentslockEntity extends BaseEntity {
 
   @Column({
     type: 'character varying',
-    nullable :true
+    nullable: true,
   })
   lastLockCause: number;
-  
+
   @Column({
     type: 'character varying',
   })
-  banInfo: string ;
-
+  banInfo: string;
 
   // @OneToMany(() => GroupsEntity, (group) => group.servic)
   // groups: GroupsEntity[]

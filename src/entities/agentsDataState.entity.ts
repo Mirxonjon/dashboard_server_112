@@ -49,7 +49,7 @@ export class agentsDataStateEntity extends BaseEntity {
 
   @Column({
     type: 'character varying',
-    nullable:true
+    nullable: true,
   })
   lastAgentStateDuration: number;
   @Column({
@@ -59,46 +59,43 @@ export class agentsDataStateEntity extends BaseEntity {
 
   @Column({
     type: 'character varying',
-    nullable:true
+    nullable: true,
   })
   lastLockCause: number;
 
   @Column({
     type: 'boolean',
-    default :'false'
+    default: 'false',
   })
   IsBlockToBlock: boolean;
 
-
   @Column({
     type: 'boolean',
-    default :'false'
+    default: 'false',
   })
   IsOnlineToBlock: boolean;
 
   @Column({
     type: 'boolean',
-    default :'false'
+    default: 'false',
   })
   IsSupervazer: boolean;
 
   @Column({
     type: 'character varying',
-    default :'null'
+    default: 'null',
   })
   TgMsgId: string;
 
   @Column({
     type: 'character varying',
-    default :'null'
+    default: 'null',
   })
   TgMsgSentTime: string;
 
-  
-
   @Column({
     type: 'boolean',
-    default :'true'
+    default: 'true',
   })
   addToblockTable: boolean;
 

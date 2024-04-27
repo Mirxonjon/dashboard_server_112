@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import {  CacheModuleOptions, Module } from '@nestjs/common';
+import { CacheModuleOptions, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { config } from './config';
@@ -10,8 +10,7 @@ import { TelegrafModule } from 'nestjs-telegraf';
 import { AgentsModule } from './module/agents/agents.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ServicesModule } from './module/service/services.module';
-// import { CategoryInfoModule } from './module/categories_Info/users.module';
-// import { SoapModule } from './module/soap/soap.module';
+
 dotenv.config();
 
 @Module({
@@ -27,10 +26,10 @@ dotenv.config();
     AgentsModule,
     CacheModule.registerAsync({
       isGlobal: true,
-      useFactory: ( ): CacheModuleOptions => ({
-        ttl:3600000,
-      })
-    })
+      useFactory: (): CacheModuleOptions => ({
+        ttl: 3600000,
+      }),
+    }),
   ],
   controllers: [],
   providers: [],

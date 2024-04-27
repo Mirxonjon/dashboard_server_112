@@ -10,8 +10,6 @@ import { Telegraf, Context } from 'telegraf';
 import { Update } from 'telegraf/typings/core/types/typegram';
 import * as dotenv from 'dotenv';
 
-
-
 export const fetchStatisticByGroup = async () => {
   const findGroups = await GroupsEntity.find();
 
@@ -85,8 +83,7 @@ export const fetchStatisticByGroup = async () => {
         'ct:TmStatDataValueTlv'
       ][39]['ct:strValue'][0];
 
-      // console.log('okkk');
-      
+    // console.log('okkk');
 
     dataGroupEntity.save({
       group_id: e.group_id,
@@ -101,7 +98,9 @@ export const fetchStatisticByGroup = async () => {
   });
 };
 
-export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<any[]> => {
+export const operatorsWhere = async (
+  bot: Telegraf<Context<Update>>,
+): Promise<any[]> => {
   let arrBlockAgents = [];
   const sampleHeaders = {
     'user-agent': 'sampleTest',
@@ -125,9 +124,9 @@ export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<a
     headers: sampleHeaders,
   });
   const convertedData = await parseStringPromise(data);
-// console.log(  convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
-//   'ct:PrCtGroupContent2Resp'
-// ][0]['ct:agents'][0]['ct:TmCtAgentInGroup2']);
+  // console.log(  convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+  //   'ct:PrCtGroupContent2Resp'
+  // ][0]['ct:agents'][0]['ct:TmCtAgentInGroup2']);
 
   const agents =
     convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
@@ -145,190 +144,221 @@ export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<a
           findAgent.lockCause == agents[i]['ct:lockCause'][0] &&
           agents[i]['ct:agentStateDuration'][0] > 600
         ) {
-          
           if (!findAgent.IsSupervazer) {
-          const findAgentlock = await agentslockEntity.find({
-            where : {
-              id: agents[i]['ct:id'][0],
+            const findAgentlock = await agentslockEntity.find({
+              where: {
+                id: agents[i]['ct:id'][0],
+              },
+              order: {
+                create_data: 'DESC',
+              },
+            });
+            let data: any = {};
 
-            },
-            order : {
-              create_data :  'DESC'
+            if (
+              findAgent.TgMsgId == 'null' &&
+              agents[i]['ct:agentStateDuration'][0] < 720
+            ) {
+              data = await bot.telegram.sendMessage(
+                process.env.TG_Chanel_ID,
+                ` ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} превысил 10-минутный перерыв`,
+              );
+              await agentsDataStateEntity.update(
+                { id: findAgent.id },
+                {
+                  TgMsgSentTime: agents[i]['ct:agentStateDuration'][0],
+                  TgMsgId: data.message_id,
+                },
+              );
+            } else if (
+              agents[i]['ct:agentStateDuration'][0] - +findAgent.TgMsgSentTime >
+              300
+            ) {
+              data = await bot.telegram.sendMessage(
+                process.env.TG_Chanel_ID,
+                `Оператор ${findAgent.lastName} ${findAgent.firstName} ${
+                  findAgent.secondName
+                } всё ещё не включился на линию! ${formatSecondsToTime(
+                  agents[i]['ct:agentStateDuration'][0],
+                )}`,
+                { reply_to_message_id: +findAgent.TgMsgId },
+              );
+              await agentsDataStateEntity.update(
+                { id: findAgent.id },
+                {
+                  TgMsgSentTime: agents[i]['ct:agentStateDuration'][0],
+                  TgMsgId: data.message_id,
+                },
+              );
             }
-          });
-          let data :any = {}
-        
-          
-  if(findAgent.TgMsgId == 'null' && agents[i]['ct:agentStateDuration'][0] < 720 ) {
-    data =  await  bot.telegram.sendMessage(process.env.TG_Chanel_ID , ` ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} превысил 10-минутный перерыв`)
-     await agentsDataStateEntity.update(
-      { id: findAgent.id },
-      { TgMsgSentTime : agents[i]['ct:agentStateDuration'][0],
-      TgMsgId: data.message_id 
-    },
-    );
- 
-    
- }else if(agents[i]['ct:agentStateDuration'][0] - +findAgent.TgMsgSentTime > 300 ) {
-    data = await bot.telegram.sendMessage(process.env.TG_Chanel_ID, `Оператор ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} всё ещё не включился на линию! ${formatSecondsToTime(agents[i]['ct:agentStateDuration'][0])}`, {reply_to_message_id : +findAgent.TgMsgId})
-    await agentsDataStateEntity.update(
-      { id: findAgent.id },
-      { TgMsgSentTime : agents[i]['ct:agentStateDuration'][0],
-      TgMsgId: data.message_id 
-    },
-    );
-  }
-          
-          if (findAgentlock[0] && !findAgent.addToblockTable) {
-            await  agentslockEntity.update(
-              { agent_id: findAgentlock[0].agent_id },
+
+            if (findAgentlock[0] && !findAgent.addToblockTable) {
+              await agentslockEntity.update(
+                { agent_id: findAgentlock[0].agent_id },
+                {
+                  agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                },
+              );
+              arrBlockAgents.push({
+                ...findAgentlock[0],
+                agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+              });
+            } else {
+              await agentslockEntity.save({
+                id: agents[i]['ct:id'][0],
+                firstName: agents[i]['ct:firstName'][0],
+                login: Number(agents[i]['ct:login'][0]),
+                lastName: agents[i]['ct:lastName'][0],
+                secondName: agents[i]['ct:secondName'][0],
+                agentState: agents[i]['ct:agentState'][0],
+                agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                lastAgentStateDuration: findAgent.lastAgentStateDuration,
+                lockCause: agents[i]['ct:lockCause'][0],
+                lastLockCause: findAgent.lastLockCause,
+                banInfo: 'time',
+              });
+
+              arrBlockAgents.push({
+                id: agents[i]['ct:id'][0],
+                firstName: agents[i]['ct:firstName'][0],
+                login: agents[i]['ct:login'][0],
+                lastName: agents[i]['ct:lastName'][0],
+                secondName: agents[i]['ct:secondName'][0],
+                agentState: agents[i]['ct:agentState'][0],
+                agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                lastAgentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                lockCause: agents[i]['ct:lockCause'][0],
+                lastLockCause: findAgent.lastLockCause,
+                banInfo: 'time',
+              });
+            }
+
+            await agentsDataStateEntity.update(
+              { id: findAgent.id },
               {
                 agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                addToblockTable: false,
               },
             );
-            arrBlockAgents.push({
-              ...findAgentlock[0],
-              agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-            });
-          } else {
-            
-           await agentslockEntity.save({
-              id: agents[i]['ct:id'][0],
-              firstName: agents[i]['ct:firstName'][0],
-              login: Number(agents[i]['ct:login'][0]),
-              lastName: agents[i]['ct:lastName'][0],
-              secondName: agents[i]['ct:secondName'][0],
-              agentState: agents[i]['ct:agentState'][0],
-              agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-              lastAgentStateDuration: findAgent.lastAgentStateDuration,
-              lockCause: agents[i]['ct:lockCause'][0],
-              lastLockCause: findAgent.lastLockCause,
-              banInfo : 'time'
-            });
-
-            arrBlockAgents.push({
-              id: agents[i]['ct:id'][0],
-              firstName: agents[i]['ct:firstName'][0],
-              login: agents[i]['ct:login'][0],
-              lastName: agents[i]['ct:lastName'][0],
-              secondName: agents[i]['ct:secondName'][0],
-              agentState: agents[i]['ct:agentState'][0],
-              agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-              lastAgentStateDuration: agents[i]['ct:agentStateDuration'][0],
-              lockCause: agents[i]['ct:lockCause'][0],
-              lastLockCause: findAgent.lastLockCause,
-              banInfo: 'time'
-            });
           }
-          
-          await agentsDataStateEntity.update(
-            { id: findAgent.id },
-            { agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-            addToblockTable :false,
-          },
-          );
-          }
-
         } else if (
           findAgent.lockCause != agents[i]['ct:lockCause'][0] &&
           arr.includes(`${findAgent.lockCause}`)
         ) {
           if (!findAgent.IsSupervazer) {
-            
             const findAgentlock = await agentslockEntity.find({
-              where : {
+              where: {
                 id: agents[i]['ct:id'][0],
               },
-              order : {
-                create_data :  'DESC'
-              }
+              order: {
+                create_data: 'DESC',
+              },
             });
-          if (findAgentlock[0] && !findAgent.addToblockTable) {
-            await agentslockEntity.update(
-              { agent_id : findAgentlock[0].agent_id },
-              {
+            if (findAgentlock[0] && !findAgent.addToblockTable) {
+              await agentslockEntity.update(
+                { agent_id: findAgentlock[0].agent_id },
+                {
+                  agentState: agents[i]['ct:agentState'][0],
+                  agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                  lastAgentStateDuration:
+                    findAgent.IsBlockToBlock == false
+                      ? findAgent.agentStateDuration
+                      : findAgentlock[0].lastAgentStateDuration,
+                  lockCause: agents[i]['ct:lockCause'][0],
+                  lastLockCause: findAgent.lockCause,
+                },
+              );
+
+              arrBlockAgents.push({
+                ...findAgentlock[0],
                 agentState: agents[i]['ct:agentState'][0],
                 agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-                lastAgentStateDuration: findAgent.IsBlockToBlock == false ?  findAgent.agentStateDuration : findAgentlock[0].lastAgentStateDuration ,
+                lastAgentStateDuration:
+                  findAgent.IsBlockToBlock == false
+                    ? findAgent.agentStateDuration
+                    : findAgentlock[0].lastAgentStateDuration,
                 lockCause: agents[i]['ct:lockCause'][0],
                 lastLockCause: findAgent.lockCause,
+              });
+            } else {
+              await agentslockEntity.save({
+                id: agents[i]['ct:id'][0],
+                firstName: agents[i]['ct:firstName'][0],
+                login: Number(agents[i]['ct:login'][0]),
+                lastName: agents[i]['ct:lastName'][0],
+                secondName: agents[i]['ct:secondName'][0],
+                agentState: agents[i]['ct:agentState'][0],
+                agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                lastAgentStateDuration: findAgent.agentStateDuration,
+                lockCause: agents[i]['ct:lockCause'][0],
+                lastLockCause: findAgent.lockCause,
+                banInfo: 'block',
+              });
+
+              arrBlockAgents.push({
+                id: agents[i]['ct:id'][0],
+                firstName: agents[i]['ct:firstName'][0],
+                login: agents[i]['ct:login'][0],
+                lastName: agents[i]['ct:lastName'][0],
+                secondName: agents[i]['ct:secondName'][0],
+                agentState: agents[i]['ct:agentState'][0],
+                agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                lastAgentStateDuration: findAgent.agentStateDuration,
+                lockCause: agents[i]['ct:lockCause'][0],
+                lastLockCause: findAgent.lockCause,
+                banInfo: 'block',
+              });
+              const message = {
+                '2': '🚬',
+                '3': '👑',
+                '4': '💻',
+                '6': '🏃',
+                '7': '🧑‍🎓',
+              };
+              await bot.telegram.sendMessage(
+                process.env.TG_Chanel_ID,
+                `   ${findAgent.lastName} ${findAgent.firstName} ${
+                  findAgent.secondName
+                } поменял статус ${message[findAgent.lockCause]} на ${
+                  message[agents[i]['ct:lockCause'][0]]
+                }`,
+              );
+            }
+            await agentsDataStateEntity.update(
+              { id: findAgent.id },
+              {
+                agentState: agents[i]['ct:agentState'][0],
+                lastAgentStateDuration:
+                  findAgent.IsBlockToBlock == false
+                    ? findAgent.agentStateDuration
+                    : findAgent.lastAgentStateDuration,
+                agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+                IsBlockToBlock: true,
+                addToblockTable: false,
               },
             );
-
-            arrBlockAgents.push({
-              ...findAgentlock[0],
-              agentState: agents[i]['ct:agentState'][0],
-              agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-              lastAgentStateDuration: findAgent.IsBlockToBlock == false ?  findAgent.agentStateDuration : findAgentlock[0].lastAgentStateDuration ,
-              lockCause: agents[i]['ct:lockCause'][0],
-              lastLockCause: findAgent.lockCause,
-            });
-          } else {
-            await agentslockEntity.save({
-              id: agents[i]['ct:id'][0],
-              firstName: agents[i]['ct:firstName'][0],
-              login: Number(agents[i]['ct:login'][0]),
-              lastName: agents[i]['ct:lastName'][0],
-              secondName: agents[i]['ct:secondName'][0],
-              agentState: agents[i]['ct:agentState'][0],
-              agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-              lastAgentStateDuration: findAgent.agentStateDuration,
-              lockCause: agents[i]['ct:lockCause'][0],
-              lastLockCause: findAgent.lockCause,
-              banInfo : 'block'
-            });
-
-            arrBlockAgents.push({
-              id: agents[i]['ct:id'][0],
-              firstName: agents[i]['ct:firstName'][0],
-              login: agents[i]['ct:login'][0],
-              lastName: agents[i]['ct:lastName'][0],
-              secondName: agents[i]['ct:secondName'][0],
-              agentState: agents[i]['ct:agentState'][0],
-              agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-              lastAgentStateDuration: findAgent.agentStateDuration,
-              lockCause: agents[i]['ct:lockCause'][0],
-              lastLockCause: findAgent.lockCause,
-              banInfo : 'block'
-            });
-            const message = {
-              '2': '🚬',
-              '3': '👑',
-              '4': '💻',
-              '6': '🏃',
-              '7': '🧑‍🎓',
-            }
-              await bot.telegram.sendMessage(process.env.TG_Chanel_ID, `   ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} поменял статус ${ message[findAgent.lockCause]} на ${ message[agents[i]['ct:lockCause'][0]]}`)
           }
-         await agentsDataStateEntity.update(
-            { id: findAgent.id },
-            {
-              agentState: agents[i]['ct:agentState'][0],
-              lastAgentStateDuration: findAgent.IsBlockToBlock == false ?  findAgent.agentStateDuration : findAgent.lastAgentStateDuration ,
-              agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-              IsBlockToBlock : true,
-              addToblockTable :false
-            },
-          );
-        }
         } else {
           await agentsDataStateEntity.update(
             { id: findAgent.id },
             {
-            agentState: agents[i]['ct:agentState'][0],
-            agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-            lastAgentStateDuration: findAgent.IsOnlineToBlock == true ?  findAgent.agentStateDuration : findAgent.lastAgentStateDuration ,
-            lockCause: agents[i]['ct:lockCause'][0],
-            lastLockCause: findAgent.IsOnlineToBlock == true ?  findAgent.lockCause : findAgent.lastLockCause,
-            IsOnlineToBlock : false,
-            IsBlockToBlock : true,
-            addToblockTable :true,
-            TgMsgId : 'null'
-            
+              agentState: agents[i]['ct:agentState'][0],
+              agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+              lastAgentStateDuration:
+                findAgent.IsOnlineToBlock == true
+                  ? findAgent.agentStateDuration
+                  : findAgent.lastAgentStateDuration,
+              lockCause: agents[i]['ct:lockCause'][0],
+              lastLockCause:
+                findAgent.IsOnlineToBlock == true
+                  ? findAgent.lockCause
+                  : findAgent.lastLockCause,
+              IsOnlineToBlock: false,
+              IsBlockToBlock: true,
+              addToblockTable: true,
+              TgMsgId: 'null',
             },
           );
-        
-      
         }
       } else if (findAgent) {
         await agentsDataStateEntity.update(
@@ -336,13 +366,19 @@ export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<a
           {
             agentState: agents[i]['ct:agentState'][0],
             agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-            lastAgentStateDuration: findAgent.IsBlockToBlock == true ?  findAgent.agentStateDuration : findAgent.lastAgentStateDuration ,
+            lastAgentStateDuration:
+              findAgent.IsBlockToBlock == true
+                ? findAgent.agentStateDuration
+                : findAgent.lastAgentStateDuration,
             lockCause: agents[i]['ct:lockCause'][0],
-            lastLockCause: findAgent.IsBlockToBlock == true ?  findAgent.lockCause : findAgent.lastLockCause,
-            IsBlockToBlock : false,
-            IsOnlineToBlock :true ,
-            addToblockTable :true,
-            TgMsgId: 'null'
+            lastLockCause:
+              findAgent.IsBlockToBlock == true
+                ? findAgent.lockCause
+                : findAgent.lastLockCause,
+            IsBlockToBlock: false,
+            IsOnlineToBlock: true,
+            addToblockTable: true,
+            TgMsgId: 'null',
           },
         );
       } else {
@@ -354,14 +390,12 @@ export const operatorsWhere = async (bot: Telegraf<Context<Update>> ): Promise<a
           secondName: agents[i]['ct:secondName'][0],
           agentState: agents[i]['ct:agentState'][0],
           agentStateDuration: agents[i]['ct:agentStateDuration'][0],
-          IsSupervazer : false ,
+          IsSupervazer: false,
           lockCause: agents[i]['ct:lockCause'][0],
         });
       }
-    
     }
   }
 
   return arrBlockAgents;
 };
-

@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
-import { Context, Telegraf } from "telegraf";
-import { Update } from "telegraf/typings/core/types/typegram";
+import { Context, Telegraf } from 'telegraf';
+import { Update } from 'telegraf/typings/core/types/typegram';
 
 export const convertTimeToSeconds = (timeString: string) => {
   const parts = timeString.split(':');
@@ -13,32 +13,40 @@ export const convertTimeToSeconds = (timeString: string) => {
 
 dotenv.config();
 
-
 export const formatSecondsToTime = (seconds) => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const remainingSeconds = (seconds % 60).toFixed(3);
 
-  const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes
+  const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes
     .toString()
-    .padStart(2, "0")}:${remainingSeconds
+    .padStart(2, '0')}:${remainingSeconds
     .toString()
-    .padStart(6, "0")
+    .padStart(6, '0')
     .slice(0, 2)}`;
 
   return formattedTime;
 };
 
-export const returnMothData  = async (date: string) => {
+export const returnMothData = async (date: string) => {
+  const mothName = [
+    { name: 'Yanvar', days: '31' },
+    { name: 'Fevral', days: '28' },
+    { name: 'Mart', days: '31' },
+    { name: 'Aprel', days: '30' },
+    { name: 'May', days: '31' },
+    { name: 'Iyun', days: '30' },
+    { name: 'Iyul', days: '31' },
+    { name: 'Avgust', days: '31' },
+    { name: 'Sentabr', days: '30' },
+    { name: 'Oktabr', days: '31' },
+    { name: 'Noyabr', days: '30' },
+    { name: 'Dekabr', days: '31' },
+  ];
 
-  const mothName = [{name :"Yanvar" , days : '31'}, {name :"Fevral" , days : '28'}, {name :"Mart" , days : '31'}, {name :"Aprel" , days : '30'}, {name :"May" , days : '31'}, {name :"Iyun" , days : '30'},
-   {name :"Iyul" , days : '31'},{name :"Avgust" , days : '31'} , {name :"Sentabr" , days : '30'}, {name :"Oktabr" , days : '31'},{name :"Noyabr" , days : '30'},{name :"Dekabr" , days : '31'}];
-
-  const mothnumber =  +date.split('.')[1] - 1
-  return   mothName[mothnumber];
-}
-
-
+  const mothnumber = +date.split('.')[1] - 1;
+  return mothName[mothnumber];
+};
 
 const month_return = {
   1: 31,
@@ -102,27 +110,25 @@ export const convertorDateToDay = async (date: string): Promise<number> => {
   return day;
 };
 
-
-
-export const  splitTextIntoChunks = async (text :string, chunkSize : number ,bot : Telegraf<Context<Update>>) =>{
-  const lines = text.split('\n'); 
+export const splitTextIntoChunks = async (
+  text: string,
+  chunkSize: number,
+  bot: Telegraf<Context<Update>>,
+) => {
+  const lines = text.split('\n');
   for (let i = 0; i < lines.length; i += chunkSize) {
-      const chunk =  lines.slice(i, i + chunkSize).join('\n'); 
+    const chunk = lines.slice(i, i + chunkSize).join('\n');
 
-      await bot.telegram.sendMessage( process.env.TG_Group_ID ,chunk)
-      // console.log(new Date(),'1');
-      
-      await new Promise(resolve => setTimeout(resolve, 7000));
-      // console.log(new Date(),'2');
+    await bot.telegram.sendMessage(process.env.TG_Group_ID, chunk);
+    // console.log(new Date(),'1');
 
-  } 
-  return true
+    await new Promise((resolve) => setTimeout(resolve, 7000));
+    // console.log(new Date(),'2');
+  }
+  return true;
+};
 
-
-}
-
-export const  subtractTime = (fullDuration:string, pauseDuration :string) => {
-
+export const subtractTime = (fullDuration: string, pauseDuration: string) => {
   const fullDurationSeconds = parseTimeStringToSeconds(fullDuration);
   const pauseDurationSeconds = parseTimeStringToSeconds(pauseDuration);
 
@@ -131,17 +137,17 @@ export const  subtractTime = (fullDuration:string, pauseDuration :string) => {
   const result = secondsToTimeFormat(resultSeconds);
 
   return result;
-}
+};
 
-export const  parseTimeStringToSeconds = (timeString:string) => {
+export const parseTimeStringToSeconds = (timeString: string) => {
   const [hours, minutes, seconds] = timeString.split(':').map(Number);
 
   const totalSeconds = hours * 3600 + minutes * 60 + seconds;
 
   return totalSeconds;
-}
+};
 
-export const  secondsToTimeFormat = (totalSeconds : number) =>  {
+export const secondsToTimeFormat = (totalSeconds: number) => {
   // Sekundlardan soat, daqiqa va soniyalarni hisoblaymiz
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -151,13 +157,8 @@ export const  secondsToTimeFormat = (totalSeconds : number) =>  {
   const result = `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
 
   return result;
-}
+};
 
-export const   padZero = (num:number) => {
+export const padZero = (num: number) => {
   return num.toString().padStart(2, '0');
-}
-
-
-
-
-
+};

@@ -23,7 +23,7 @@ export const connectDb: TypeOrmModuleOptions = {
   password: String(process.env.DB_PASSWORD),
   username: process.env.DB_USERNAME,
   database: process.env.DATABASE,
-  
+
   entities: [
     UsersEntity,
     AdminEntity,
@@ -37,8 +37,7 @@ export const connectDb: TypeOrmModuleOptions = {
     AgentDateEntity,
     GraphMonthEntity,
     GraphDaysEntity,
-    agentControlGraphEntity
-
+    agentControlGraphEntity,
   ],
   autoLoadEntities: true,
   synchronize: true,
