@@ -10,13 +10,9 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Inject, Injectable, Req } from '@nestjs/common';
 import { Cron, CronExpression, Interval } from '@nestjs/schedule';
-import { GroupsEntity } from 'src/entities/group.entity';
-import axios from 'axios';
-import { parseStringPromise } from 'xml2js';
 import { dataGroupEntity } from 'src/entities/dataGroup.entity';
 import {
   convertDate,
-  // convertorDateToDay,
   splitTextIntoChunks,
 } from 'src/utils/converters';
 import { agentslockEntity } from 'src/entities/agentslock.entity';

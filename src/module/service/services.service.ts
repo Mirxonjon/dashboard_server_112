@@ -42,7 +42,6 @@ export class ServicesService {
         },
       })
       .catch((e) => console.log(e));
-
     return findStatistik;
   }
 
