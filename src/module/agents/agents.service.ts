@@ -367,7 +367,7 @@ export class AgentsService {
     };
   }
 
-  async findComeToWorkOnTimeData(fromDate: string, untilDate: string) {
+  async findComeToWorkOnTimeData(id: string, fullname: string , fromDate: string, untilDate: string) {
     const fromDateFormatted = new Date(
       parseInt(fromDate.split('.')[2]),
       parseInt(fromDate.split('.')[1]) - 1,
@@ -385,6 +385,8 @@ export class AgentsService {
     const findAgents = await agentControlGraphEntity
       .find({
         where: {
+          id : id == 'null' ? null : id ,
+         name:  fullname == 'null' ? null : Like(`%${fullname}%`) ,
           ComeToWorkOnTime: false,
           create_data: Between(fromDateFormatted, untilDateFormatted),
         },
@@ -417,7 +419,7 @@ export class AgentsService {
     return agents;
   }
 
-  async findWorkedLessData(fromDate: string, untilDate: string) {
+  async findWorkedLessData(id: string, fullname: string ,fromDate: string, untilDate: string) {
     const fromDateFormatted = new Date(
       parseInt(fromDate.split('.')[2]),
       parseInt(fromDate.split('.')[1]) - 1,
@@ -435,6 +437,8 @@ export class AgentsService {
     const findAgents = await agentControlGraphEntity
       .find({
         where: {
+          id : id == 'null' ? null : id ,
+          name:  fullname == 'null' ? null : Like(`%${fullname}%`) ,
           TimeWorkIsDone: false,
           create_data: Between(fromDateFormatted, untilDateFormatted),
         },
@@ -467,7 +471,7 @@ export class AgentsService {
     return agents;
   }
 
-  async findLeftAfterWorkData(fromDate: string, untilDate: string) {
+  async findLeftAfterWorkData(id: string, fullname: string , fromDate: string, untilDate: string) {
     const fromDateFormatted = new Date(
       parseInt(fromDate.split('.')[2]),
       parseInt(fromDate.split('.')[1]) - 1,
@@ -485,6 +489,8 @@ export class AgentsService {
     const findAgents = await agentControlGraphEntity
       .find({
         where: {
+          id : id == 'null' ? null : id ,
+          name:  fullname == 'null' ? null : Like(`%${fullname}%`) ,
           LeftAfterWork: false,
           create_data: Between(fromDateFormatted, untilDateFormatted),
         },
@@ -517,7 +523,7 @@ export class AgentsService {
     return agents;
   }
 
-  async findallBanTimeData(fromDate: string, untilDate: string) {
+  async findallBanTimeData(id: string, fullname: string ,fromDate: string, untilDate: string) {
     const fromDateFormatted = new Date(
       parseInt(fromDate.split('.')[2]),
       parseInt(fromDate.split('.')[1]) - 1,
@@ -535,6 +541,8 @@ export class AgentsService {
     const findAgents = await agentslockEntity
       .find({
         where: {
+          id : id == 'null' ? null : id ,
+          lastName:  fullname == 'null' ? null : Like(`%${fullname}%`) ,
           banInfo: 'time',
           create_data: Between(fromDateFormatted, untilDateFormatted),
         },
@@ -567,7 +575,7 @@ export class AgentsService {
     return agents;
   }
 
-  async findallBanBlockData(fromDate: string, untilDate: string) {
+  async findallBanBlockData(id: string, fullname: string  ,fromDate: string, untilDate: string) {
     const fromDateFormatted = new Date(
       parseInt(fromDate.split('.')[2]),
       parseInt(fromDate.split('.')[1]) - 1,
@@ -585,6 +593,8 @@ export class AgentsService {
     const findAgents = await agentslockEntity
       .find({
         where: {
+          id : id == 'null' ? null : id ,
+          lastName:  fullname == 'null' ? null : Like(`%${fullname}%`) ,
           banInfo: 'block',
           create_data: Between(fromDateFormatted, untilDateFormatted),
         },

@@ -47,13 +47,15 @@ export class AgentsController {
   @ApiOkResponse()
   @ApiOperation({
     description:
-      "Ishga kech qolganlarni ro'yhatini olish uchun api. Sanani formati 01.04.2024 ",
+      "Ishga kech qolganlarni ro'yhatini olish uchun api. Sanani formati 01.04.2024 , idRMO  qidiriluvchi rmo idsi yo'q bolsa null qiymat jo'natasiz, fullname qidiriluvchi to'liq ismi yo'q bo'lsa null",
   })
   async findControlAgentsDate(
+    @Query('idRMO') id: string,
+    @Query('fullname') fullname: string,
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findComeToWorkOnTimeData(fromDate, untilDate);
+    return await this.#_service.findComeToWorkOnTimeData(id ,fullname, fromDate, untilDate);
   }
 
   @Get('findLeftAfterWorkData')
@@ -62,13 +64,15 @@ export class AgentsController {
   @ApiOkResponse()
   @ApiOperation({
     description:
-      "Ishdan erta ketganlarni   ro'yhatini olish uchun api. Sanani formati 01.04.2024",
+      "Ishdan erta ketganlarni   ro'yhatini olish uchun api. Sanani formati 01.04.2024 , , idRMO  qidiriluvchi rmo idsi yo'q bolsa null qiymat jo'natasiz, fullname qidiriluvchi to'liq ismi yo'q bo'lsa null",
   })
   async findLeftAfterWorkData(
+    @Query('idRMO') id: string,
+    @Query('fullname') fullname: string,
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findLeftAfterWorkData(fromDate, untilDate);
+    return await this.#_service.findLeftAfterWorkData(id , fullname ,fromDate, untilDate);
   }
 
   @Get('findallBanTimeData')
@@ -77,13 +81,15 @@ export class AgentsController {
   @ApiOkResponse()
   @ApiOperation({
     description:
-      "10m dan ko'p pereriv olgan operatorlar ro'hati . Sanani formati 01.04.2024",
+      "10m dan ko'p pereriv olgan operatorlar ro'hati . Sanani formati 01.04.2024 , idRMO  qidiriluvchi rmo idsi yo'q bolsa null qiymat jo'natasiz, fullname qidiriluvchi familyasi yo'q bo'lsa null",
   })
   async findallBanTimeData(
+    @Query('idRMO') id: string,
+    @Query('fullname') fullname: string,
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findallBanTimeData(fromDate, untilDate);
+    return await this.#_service.findallBanTimeData(id , fullname,fromDate, untilDate);
   }
 
   @Get('findallworkedLess')
@@ -92,13 +98,15 @@ export class AgentsController {
   @ApiOkResponse()
   @ApiOperation({
     description:
-      "9 soat kam ishlagan operatorlar ro'hati . Sanani formati 01.04.2024",
+      "9 soat kam ishlagan operatorlar ro'hati . Sanani formati 01.04.2024, idRMO  qidiriluvchi rmo idsi yo'q bolsa null qiymat jo'natasiz, fullname qidiriluvchi familyasi yo'q bo'lsa null",
   })
   async findWorkedLessData(
+    @Query('idRMO') id: string,
+    @Query('fullname') fullname: string,
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findWorkedLessData(fromDate, untilDate);
+    return await this.#_service.findWorkedLessData(id ,fullname ,fromDate, untilDate);
   }
 
   @Get('findallBanBlockData')
@@ -107,13 +115,15 @@ export class AgentsController {
   @ApiOkResponse()
   @ApiOperation({
     description:
-      "blockdan blockga o'tgan  operatorlar ro'hati . Sanani formati 01.04.2024",
+      "blockdan blockga o'tgan  operatorlar ro'hati . Sanani formati 01.04.2024 , , idRMO  qidiriluvchi rmo idsi yo'q bolsa null qiymat jo'natasiz, fullname qidiriluvchi familyasi yo'q bo'lsa null",
   })
   async findallBanBlockData(
+    @Query('idRMO') id: string,
+    @Query('fullname') fullname: string,
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findallBanBlockData(fromDate, untilDate);
+    return await this.#_service.findallBanBlockData(id, fullname, fromDate, untilDate);
   }
 
   @Get('findLockData')
