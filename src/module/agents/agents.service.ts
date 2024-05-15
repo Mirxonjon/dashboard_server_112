@@ -424,55 +424,7 @@ export class AgentsService {
     return agents;
   }
 
-  async findWorkedLessData(fromDate: string, untilDate: string) {
-    const fromDateFormatted = new Date(
-      parseInt(fromDate.split('.')[2]),
-      parseInt(fromDate.split('.')[1]) - 1,
-      parseInt(fromDate.split('.')[0]),
-    );
-    const untilDateFormatted = new Date(
-      parseInt(untilDate.split('.')[2]),
-      parseInt(untilDate.split('.')[1]) - 1,
-      parseInt(untilDate.split('.')[0]),
-    );
 
-    fromDateFormatted.setHours(0, 0, 0, 0);
-    untilDateFormatted.setHours(23, 59, 59, 999);
-
-    const findAgents = await agentControlGraphEntity
-      .find({
-        where: {
-          TimeWorkIsDone: false,
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        order: {
-          create_data: 'desc',
-        },
-      })
-      .catch(() => {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-      });
-
-    let WorkedLessAllOperators: agentControlGraphEntity[] = [];
-
-    for (let e of findAgents) {
-      let arr = [];
-      for (let j of WorkedLessAllOperators) {
-        arr.push(j.id);
-      }
-      if (!arr.includes(e.id)) {
-        WorkedLessAllOperators.push(e);
-      }
-    }
-
-    const agents = await this.findAllOperatorBanInfo(
-      WorkedLessAllOperators,
-      fromDateFormatted,
-      untilDateFormatted,
-    );
-
-    return agents;
-  }
 
   async findWorkedLessData(
     id: string,
@@ -774,6 +726,17 @@ export class AgentsService {
           }
         }
 
+        const CountAgentWorkedLess = await agentControlGraphEntity
+        .count({
+          where: {
+            id_login: e.login.toString(),
+            TimeWorkIsDone: false,
+          },
+        })
+        .catch(() => {  
+          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+        });
+
         const CountAgentсomeToWorkLate = await agentControlGraphEntity
           .count({
             where: {
@@ -830,6 +793,7 @@ export class AgentsService {
           CountAgentLeftAfterWork,
           CountAgentBlock,
           CountAgentBanTime,
+          CountAgentWorkedLess
         });
       }
     }
@@ -873,6 +837,8 @@ export class AgentsService {
       });
 
       let allworkTime = 0;
+      let work_time = '09-18'
+
       if (findAgent) {
         for (let moth of findAgent.months) {
           for (let day of moth.days) {
@@ -897,14 +863,28 @@ export class AgentsService {
             const typesSmen = ['08-20', '20-08'];
             if (typesTime.includes(day.work_time) && day.work_type == 'day') {
               allworkTime += 9;
+              work_time = day.work_time
+
             } else if (
               typesSmen.includes(day.work_time) &&
               day.work_type == 'smen'
             ) {
               allworkTime += 12;
+              work_time = day.work_time
+
             }
           }
         }
+        const CountAgentWorkedLess= await agentControlGraphEntity
+        .count({
+          where: {
+            id_login: e.id_login,
+            TimeWorkIsDone: false,
+          },
+        })
+        .catch(() => {
+          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+        });
 
         const CountAgentсomeToWorkLate = await agentControlGraphEntity
           .count({
@@ -963,6 +943,7 @@ export class AgentsService {
           CountAgentLeftAfterWork,
           CountAgentBlock,
           CountAgentBanTime,
+          CountAgentWorkedLess
         });
       }
     }

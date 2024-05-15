@@ -129,21 +129,6 @@ export class AgentsController {
     );
   }
 
-  @Get('findallworkedLess')
-  @ApiBadRequestResponse()
-  @ApiNotFoundResponse()
-  @ApiOkResponse()
-  @ApiOperation({
-    description:
-      "9 soat kam ishlagan operatorlar ro'hati . Sanani formati 01.04.2024",
-  })
-  async findWorkedLessData(
-    @Query('fromDate') fromDate: string,
-    @Query('untilDate') untilDate: string,
-  ) {
-    return await this.#_service.findWorkedLessData(fromDate, untilDate);
-  }
-
   @Get('findallBanBlockData')
   @ApiBadRequestResponse()
   @ApiNotFoundResponse()
