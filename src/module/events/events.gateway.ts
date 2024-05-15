@@ -11,10 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { Inject, Injectable, Req } from '@nestjs/common';
 import { Cron, CronExpression, Interval } from '@nestjs/schedule';
 import { dataGroupEntity } from 'src/entities/dataGroup.entity';
-import {
-  convertDate,
-  splitTextIntoChunks,
-} from 'src/utils/converters';
+import { convertDate, splitTextIntoChunks } from 'src/utils/converters';
 import { agentslockEntity } from 'src/entities/agentslock.entity';
 import {
   fetchStatisticByGroup,

@@ -55,7 +55,12 @@ export class AgentsController {
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findComeToWorkOnTimeData(id ,fullname, fromDate, untilDate);
+    return await this.#_service.findComeToWorkOnTimeData(
+      id,
+      fullname,
+      fromDate,
+      untilDate,
+    );
   }
 
   @Get('findLeftAfterWorkData')
@@ -72,7 +77,12 @@ export class AgentsController {
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findLeftAfterWorkData(id , fullname ,fromDate, untilDate);
+    return await this.#_service.findLeftAfterWorkData(
+      id,
+      fullname,
+      fromDate,
+      untilDate,
+    );
   }
 
   @Get('findallBanTimeData')
@@ -89,7 +99,12 @@ export class AgentsController {
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findallBanTimeData(id , fullname,fromDate, untilDate);
+    return await this.#_service.findallBanTimeData(
+      id,
+      fullname,
+      fromDate,
+      untilDate,
+    );
   }
 
   @Get('findallworkedLess')
@@ -106,7 +121,12 @@ export class AgentsController {
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findWorkedLessData(id ,fullname ,fromDate, untilDate);
+    return await this.#_service.findWorkedLessData(
+      id,
+      fullname,
+      fromDate,
+      untilDate,
+    );
   }
 
   @Get('findallBanBlockData')
@@ -123,7 +143,12 @@ export class AgentsController {
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findallBanBlockData(id, fullname, fromDate, untilDate);
+    return await this.#_service.findallBanBlockData(
+      id,
+      fullname,
+      fromDate,
+      untilDate,
+    );
   }
 
   @Get('findLockData')
