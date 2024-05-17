@@ -691,6 +691,7 @@ export class AgentsService {
       });
 
       let allworkTime = 0;
+      let work_time = '09-18'
       if (findAgent) {
         for (let moth of findAgent.months) {
           if (moth) {
@@ -716,10 +717,12 @@ export class AgentsService {
               const typesSmen = ['08-20', '20-08'];
               if (typesTime.includes(day.work_time) && day.work_type == 'day') {
                 allworkTime += 9;
+                work_time = work_time
               } else if (
                 typesSmen.includes(day.work_time) &&
                 day.work_type == 'smen'
               ) {
+                work_time = work_time
                 allworkTime += 12;
               }
             }
@@ -784,6 +787,7 @@ export class AgentsService {
         agents.push({
           agent_id: findAgent.agent_id,
           id: findAgent.id,
+          work_time,
           service_name: findAgent.service_name,
           id_login: findAgent.id_login,
           name: findAgent.name,
