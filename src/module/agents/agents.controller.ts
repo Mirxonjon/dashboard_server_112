@@ -190,7 +190,7 @@ export class AgentsController {
     @Query('fromDate') fromDate: string,
     @Query('untilDate') untilDate: string,
   ) {
-    return await this.#_service.findLockData(
+    return await this.#_service.findControlTgraphData(
       agent_id,
       +pageNumber,
       +pageSize,
