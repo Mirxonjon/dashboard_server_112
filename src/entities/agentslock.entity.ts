@@ -19,7 +19,7 @@ export class agentslockEntity extends BaseEntity {
   @Column({
     type: 'integer',
   })
-  login: Number;
+  login: number;
 
   @Column({
     type: 'character varying',

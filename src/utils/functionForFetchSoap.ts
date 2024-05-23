@@ -23,7 +23,7 @@ export const fetchGetagentStatistic = async (id: number) => {
 </soapenv:Envelope>`;
 
   const { data } = await axios.post(
-    'http://10.145.32.3:15358/ct?wsdl',
+    'http://10.145.34.3:15358/ct?wsdl',
     xml,
     // { headers: sampleHeaders },
   );

@@ -187,6 +187,7 @@ export class AgentsService {
   // @Cron(CronExpression.EVERY_5_SECONDS)
   async findLockData(
     agentId: string,
+    type_block: string,
     pageNumber = 1,
     pageSize = 10,
     fromDate: string,
@@ -212,48 +213,74 @@ export class AgentsService {
     );
 
     const offset = (pageNumber - 1) * pageSize;
+    let totalPages: number = 0;
+    let totalItemCount = 0;
+    let allData = [];
+    if (type_block == 'all') {
+      const [results, total] = await agentslockEntity.findAndCount({
+        where: {
+          id: findAgent.id,
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        order: {
+          create_data: 'DESC',
+        },
+        skip: offset,
+        take: pageSize,
+      });
+      totalPages = Math.ceil(total / pageSize);
+      totalItemCount = total;
+      allData = results;
+    } else {
+      const [results, total] = await agentslockEntity.findAndCount({
+        where: {
+          id: findAgent.id,
+          banInfo: type_block,
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        order: {
+          create_data: 'DESC',
+        },
+        skip: offset,
+        take: pageSize,
+      });
+      totalPages = Math.ceil(total / pageSize);
+      totalItemCount = total;
 
-    const [results, total] = await agentslockEntity.findAndCount({
-      where: {
-        id: findAgent.id,
-        create_data: Between(fromDateFormatted, untilDateFormatted),
-      },
-      order: {
-        create_data: 'DESC',
-      },
-      skip: offset,
-      take: pageSize,
-    });
-
-    const totalPages = Math.ceil(total / pageSize);
+      allData = results;
+    }
 
     return {
       data: {
-        results,
+        results: allData,
       },
       pagination: {
         currentPage: pageNumber,
         totalPages,
         pageSize,
-        totalItems: total,
+        totalItems: totalItemCount,
       },
     };
   }
 
   async findControlTgraphData(
     agent_id: string,
+    type_ban: string,
     pageNumber = 1,
     pageSize = 10,
     fromDate: string,
     untilDate: string,
   ) {
     const offset = (pageNumber - 1) * pageSize;
+    // console.log(agent_id);
 
     const findAgent = await AgentDateEntity.findOne({
       where: {
         agent_id,
       },
-    }).catch(() => {
+    }).catch((e) => {
+      console.log(e, agent_id);
+
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     });
 
@@ -270,69 +297,214 @@ export class AgentsService {
 
     fromDateFormatted.setHours(0, 0, 0, 0);
     untilDateFormatted.setHours(23, 59, 59, 999);
+    let allResults = [];
+    let allTotals = 0;
+    if (type_ban == 'stay_up_late') {
+      console.log(findAgent);
 
-    const [results, total] = await agentControlGraphEntity
-      .findAndCount({
-        where: [
-          {
+      const [results, total] = await agentControlGraphEntity
+        .findAndCount({
+          where: {
             id_login: findAgent.id_login,
             ComeToWorkOnTime: Not(true),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+
+          order: {
+            create_data: 'DESC',
+          },
+          skip: offset,
+          take: pageSize,
+        })
+        .catch((e) => {
+          console.log(e, 'lllll');
+
+          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+        });
+      console.log('okkk', type_ban, results);
+      allResults = results;
+      allTotals = total;
+    } else if (type_ban == 'left_work_early') {
+      console.log(findAgent);
+
+      const [results, total] = await agentControlGraphEntity
+        .findAndCount({
+          where: {
+            id_login: findAgent.id_login,
             LeftAfterWork: Not(true),
-            TimeWorkIsDone: Not(true),
             create_data: Between(fromDateFormatted, untilDateFormatted),
           },
-          {
+
+          order: {
+            create_data: 'DESC',
+          },
+          skip: offset,
+          take: pageSize,
+        })
+        .catch((e) => {
+          console.log(e, 'lllll');
+
+          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+        });
+      console.log('okkk', type_ban, results);
+      allResults = results;
+      allTotals = total;
+    } else if (type_ban == 'not_at_work') {
+      console.log(findAgent);
+
+      const [results, total] = await agentControlGraphEntity
+        .findAndCount({
+          where: {
             id_login: findAgent.id_login,
-            ComeToWorkOnTime: true,
-            LeftAfterWork: true,
-            TimeWorkIsDone: Not(true),
+            LastLoginTime: 'not login',
             create_data: Between(fromDateFormatted, untilDateFormatted),
           },
-          {
-            id_login: findAgent.id_login,
-            ComeToWorkOnTime: true,
-            LeftAfterWork: Not(true),
-            TimeWorkIsDone: Not(true),
-            create_data: Between(fromDateFormatted, untilDateFormatted),
+
+          order: {
+            create_data: 'DESC',
           },
-          {
-            id_login: findAgent.id_login,
-            ComeToWorkOnTime: Not(true),
-            LeftAfterWork: true,
-            TimeWorkIsDone: Not(true),
-            create_data: Between(fromDateFormatted, untilDateFormatted),
+          skip: offset,
+          take: pageSize,
+        })
+        .catch((e) => {
+          console.log(e, 'lllll');
+
+          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+        });
+      console.log('okkk', type_ban, results);
+      allResults = results;
+      allTotals = total;
+    } else {
+      const [results, total] = await agentControlGraphEntity
+        .findAndCount({
+          where: [
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: true,
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: true,
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: true,
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+          ],
+          order: {
+            create_data: 'DESC',
           },
-          {
-            id_login: findAgent.id_login,
-            ComeToWorkOnTime: Not(true),
-            LeftAfterWork: Not(true),
-            TimeWorkIsDone: true,
-            create_data: Between(fromDateFormatted, untilDateFormatted),
-          },
-          {
-            id_login: findAgent.id_login,
-            ComeToWorkOnTime: true,
-            LeftAfterWork: Not(true),
-            TimeWorkIsDone: true,
-            create_data: Between(fromDateFormatted, untilDateFormatted),
-          },
-          {
-            id_login: findAgent.id_login,
-            ComeToWorkOnTime: Not(true),
-            LeftAfterWork: true,
-            TimeWorkIsDone: true,
-            create_data: Between(fromDateFormatted, untilDateFormatted),
-          },
-        ],
-        order: {
-          create_data: 'DESC',
-        },
-        skip: offset,
-        take: pageSize,
-      })
-      .catch(() => {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-      });
+          skip: offset,
+          take: pageSize,
+        })
+        .catch(() => {
+          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+        });
+      console.log('EEEEEE');
+
+      allResults = results;
+      allTotals = total;
+    }
+
+    // const [results, total] = await agentControlGraphEntity
+    //   .findAndCount({
+    //     where: [
+    //       {
+    //         id_login: findAgent.id_login,
+    //         ComeToWorkOnTime: Not(true),
+    //         LeftAfterWork: Not(true),
+    //         TimeWorkIsDone: Not(true),
+    //         create_data: Between(fromDateFormatted, untilDateFormatted),
+    //       },
+    //       {
+    //         id_login: findAgent.id_login,
+    //         ComeToWorkOnTime: true,
+    //         LeftAfterWork: true,
+    //         TimeWorkIsDone: Not(true),
+    //         create_data: Between(fromDateFormatted, untilDateFormatted),
+    //       },
+    //       {
+    //         id_login: findAgent.id_login,
+    //         ComeToWorkOnTime: true,
+    //         LeftAfterWork: Not(true),
+    //         TimeWorkIsDone: Not(true),
+    //         create_data: Between(fromDateFormatted, untilDateFormatted),
+    //       },
+    //       {
+    //         id_login: findAgent.id_login,
+    //         ComeToWorkOnTime: Not(true),
+    //         LeftAfterWork: true,
+    //         TimeWorkIsDone: Not(true),
+    //         create_data: Between(fromDateFormatted, untilDateFormatted),
+    //       },
+    //       {
+    //         id_login: findAgent.id_login,
+    //         ComeToWorkOnTime: Not(true),
+    //         LeftAfterWork: Not(true),
+    //         TimeWorkIsDone: true,
+    //         create_data: Between(fromDateFormatted, untilDateFormatted),
+    //       },
+    //       {
+    //         id_login: findAgent.id_login,
+    //         ComeToWorkOnTime: true,
+    //         LeftAfterWork: Not(true),
+    //         TimeWorkIsDone: true,
+    //         create_data: Between(fromDateFormatted, untilDateFormatted),
+    //       },
+    //       {
+    //         id_login: findAgent.id_login,
+    //         ComeToWorkOnTime: Not(true),
+    //         LeftAfterWork: true,
+    //         TimeWorkIsDone: true,
+    //         create_data: Between(fromDateFormatted, untilDateFormatted),
+    //       },
+    //     ],
+    //     order: {
+    //       create_data: 'DESC',
+    //     },
+    //     skip: offset,
+    //     take: pageSize,
+    //   })
+    //   .catch(() => {
+    //     throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    //   });
 
     const agentData = await agentControlGraphEntity
       .find({
@@ -345,7 +517,7 @@ export class AgentsService {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
       });
 
-    const totalPages = Math.ceil(total / pageSize);
+    const totalPages = Math.ceil(allTotals / pageSize);
     let MustBeWorked = 0;
     let workTime = 0;
     for (let e of agentData) {
@@ -354,7 +526,7 @@ export class AgentsService {
     }
     return {
       data: {
-        results,
+        results: allResults,
         MustBeWorked,
         workTime,
       },
@@ -362,13 +534,119 @@ export class AgentsService {
         currentPage: pageNumber,
         totalPages,
         pageSize,
-        totalItems: total,
+        totalItems: allTotals,
       },
     };
   }
 
+  async findAllGraphAndBlockData(
+    login: string,
+    fullname: string,
+    pageNumber = 1,
+    pageSize = 10,
+    fromDate: string,
+    untilDate: string,
+  ) {
+    const fromDateFormatted = new Date(
+      parseInt(fromDate.split('.')[2]),
+      parseInt(fromDate.split('.')[1]) - 1,
+      parseInt(fromDate.split('.')[0]),
+    );
+    const untilDateFormatted = new Date(
+      parseInt(untilDate.split('.')[2]),
+      parseInt(untilDate.split('.')[1]) - 1,
+      parseInt(untilDate.split('.')[0]),
+    );
+
+    fromDateFormatted.setHours(0, 0, 0, 0);
+    untilDateFormatted.setHours(23, 59, 59, 999);
+
+    const findAgentsGraph = await agentControlGraphEntity
+      .find({
+        where: {
+          id_login: login == 'null' ? null : login,
+          name: fullname == 'null' ? null : Like(`%${fullname}%`),
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        order: {
+          create_data: 'desc',
+        },
+        skip: (pageNumber - 1) * pageSize,
+        take: pageSize,
+      })
+      .catch(() => {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      });
+
+    let GraphAllOperators: agentControlGraphEntity[] = [];
+
+    for (let e of findAgentsGraph) {
+      let arr = [];
+      for (let j of GraphAllOperators) {
+        arr.push(j.id);
+      }
+      if (!arr.includes(e.id)) {
+        GraphAllOperators.push(e);
+      }
+    }
+
+    const agentsGraph = await this.findAllOperatorBanInfo(
+      GraphAllOperators,
+      fromDateFormatted,
+      untilDateFormatted,
+    );
+
+    const findBlockAgents = await agentslockEntity
+      .find({
+        where: {
+          login: login == 'null' ? null : +login,
+          lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        order: {
+          create_data: 'desc',
+        },
+      })
+      .catch(() => {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      });
+
+    let AllbanTimeOperators: agentslockEntity[] = [];
+
+    for (let e of findBlockAgents) {
+      let arr = [];
+      for (let j of AllbanTimeOperators) {
+        arr.push(j.id);
+      }
+      if (!arr.includes(e.id)) {
+        AllbanTimeOperators.push(e);
+      }
+    }
+
+    const agents = await this.findAllOperatorBanInfoDateAgentLock(
+      AllbanTimeOperators,
+      fromDateFormatted,
+      untilDateFormatted,
+    );
+
+    let allAgents = [...agentsGraph, ...agents];
+
+    const startIndex = (pageNumber - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedAgents = allAgents.slice(startIndex, endIndex);
+
+    const totalCount = allAgents.length;
+
+    return {
+      agents: paginatedAgents,
+      totalCount,
+      pageNumber,
+      pageSize,
+    };
+  }
+
   async findComeToWorkOnTimeData(
-    id: string,
+    login: string,
     fullname: string,
     fromDate: string,
     untilDate: string,
@@ -390,7 +668,7 @@ export class AgentsService {
     const findAgents = await agentControlGraphEntity
       .find({
         where: {
-          id: id == 'null' ? null : id,
+          id_login: login == 'null' ? null : login,
           name: fullname == 'null' ? null : Like(`%${fullname}%`),
           ComeToWorkOnTime: false,
           create_data: Between(fromDateFormatted, untilDateFormatted),
@@ -424,10 +702,8 @@ export class AgentsService {
     return agents;
   }
 
-
-
   async findWorkedLessData(
-    id: string,
+    login: string,
     fullname: string,
     fromDate: string,
     untilDate: string,
@@ -449,7 +725,7 @@ export class AgentsService {
     const findAgents = await agentControlGraphEntity
       .find({
         where: {
-          id: id == 'null' ? null : id,
+          id_login: login == 'null' ? null : login,
           name: fullname == 'null' ? null : Like(`%${fullname}%`),
           TimeWorkIsDone: false,
           create_data: Between(fromDateFormatted, untilDateFormatted),
@@ -484,7 +760,7 @@ export class AgentsService {
   }
 
   async findLeftAfterWorkData(
-    id: string,
+    login: string,
     fullname: string,
     fromDate: string,
     untilDate: string,
@@ -506,7 +782,7 @@ export class AgentsService {
     const findAgents = await agentControlGraphEntity
       .find({
         where: {
-          id: id == 'null' ? null : id,
+          id_login: login == 'null' ? null : login,
           name: fullname == 'null' ? null : Like(`%${fullname}%`),
           LeftAfterWork: false,
           create_data: Between(fromDateFormatted, untilDateFormatted),
@@ -541,7 +817,7 @@ export class AgentsService {
   }
 
   async findallBanTimeData(
-    id: string,
+    login: string,
     fullname: string,
     fromDate: string,
     untilDate: string,
@@ -563,7 +839,7 @@ export class AgentsService {
     const findAgents = await agentslockEntity
       .find({
         where: {
-          id: id == 'null' ? null : id,
+          login: login == 'null' ? null : +login,
           lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
           banInfo: 'time',
           create_data: Between(fromDateFormatted, untilDateFormatted),
@@ -598,7 +874,7 @@ export class AgentsService {
   }
 
   async findallBanBlockData(
-    id: string,
+    login: string,
     fullname: string,
     fromDate: string,
     untilDate: string,
@@ -620,7 +896,7 @@ export class AgentsService {
     const findAgents = await agentslockEntity
       .find({
         where: {
-          id: id == 'null' ? null : id,
+          login: login == 'null' ? null : +login,
           lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
           banInfo: 'block',
           create_data: Between(fromDateFormatted, untilDateFormatted),
@@ -691,7 +967,7 @@ export class AgentsService {
       });
 
       let allworkTime = 0;
-      let work_time = '09-18'
+      let work_time = '09-18';
       if (findAgent) {
         for (let moth of findAgent.months) {
           if (moth) {
@@ -717,12 +993,12 @@ export class AgentsService {
               const typesSmen = ['08-20', '20-08'];
               if (typesTime.includes(day.work_time) && day.work_type == 'day') {
                 allworkTime += 9;
-                work_time = work_time
+                work_time = work_time;
               } else if (
                 typesSmen.includes(day.work_time) &&
                 day.work_type == 'smen'
               ) {
-                work_time = work_time
+                work_time = work_time;
                 allworkTime += 12;
               }
             }
@@ -730,15 +1006,15 @@ export class AgentsService {
         }
 
         const CountAgentWorkedLess = await agentControlGraphEntity
-        .count({
-          where: {
-            id_login: e.login.toString(),
-            TimeWorkIsDone: false,
-          },
-        })
-        .catch(() => {  
-          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-        });
+          .count({
+            where: {
+              id_login: e.login.toString(),
+              TimeWorkIsDone: false,
+            },
+          })
+          .catch(() => {
+            throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+          });
 
         const CountAgentсomeToWorkLate = await agentControlGraphEntity
           .count({
@@ -747,7 +1023,7 @@ export class AgentsService {
               ComeToWorkOnTime: false,
             },
           })
-          .catch(() => {  
+          .catch(() => {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
@@ -797,7 +1073,7 @@ export class AgentsService {
           CountAgentLeftAfterWork,
           CountAgentBlock,
           CountAgentBanTime,
-          CountAgentWorkedLess
+          CountAgentWorkedLess,
         });
       }
     }
@@ -841,7 +1117,7 @@ export class AgentsService {
       });
 
       let allworkTime = 0;
-      let work_time = '09-18'
+      let work_time = '09-18';
 
       if (findAgent) {
         for (let moth of findAgent.months) {
@@ -867,28 +1143,26 @@ export class AgentsService {
             const typesSmen = ['08-20', '20-08'];
             if (typesTime.includes(day.work_time) && day.work_type == 'day') {
               allworkTime += 9;
-              work_time = day.work_time
-
+              work_time = day.work_time;
             } else if (
               typesSmen.includes(day.work_time) &&
               day.work_type == 'smen'
             ) {
               allworkTime += 12;
-              work_time = day.work_time
-
+              work_time = day.work_time;
             }
           }
         }
-        const CountAgentWorkedLess= await agentControlGraphEntity
-        .count({
-          where: {
-            id_login: e.id_login,
-            TimeWorkIsDone: false,
-          },
-        })
-        .catch(() => {
-          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-        });
+        const CountAgentWorkedLess = await agentControlGraphEntity
+          .count({
+            where: {
+              id_login: e.id_login,
+              TimeWorkIsDone: false,
+            },
+          })
+          .catch(() => {
+            throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+          });
 
         const CountAgentсomeToWorkLate = await agentControlGraphEntity
           .count({
@@ -947,7 +1221,7 @@ export class AgentsService {
           CountAgentLeftAfterWork,
           CountAgentBlock,
           CountAgentBanTime,
-          CountAgentWorkedLess
+          CountAgentWorkedLess,
         });
       }
     }

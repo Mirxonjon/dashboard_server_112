@@ -99,7 +99,7 @@ export const Groupqueue = async () => {
     </soapenv:Body>
  </soapenv:Envelope>`;
 
-    const { data } = await axios.post('http://10.145.32.3:15358/ct?wsdl', xml);
+    const { data } = await axios.post('http://10.145.34.3:15358/ct?wsdl', xml);
 
     const convertedData = await parseStringPromise(data);
 

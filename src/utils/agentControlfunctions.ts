@@ -352,7 +352,7 @@ export const ControlAgentGraph = async (
 
           let timeIsOff =
             fullDurationOfWorkTimeParseSeconds + startWorkTimeParseSeconds;
-          if ((worktime == '17-02')) {
+          if (worktime == '17-02') {
             const timeofOneDay = parseTimeStringToSeconds('24:00:00');
             timeIsOff =
               fullDurationOfWorkTimeParseSeconds +
@@ -820,7 +820,7 @@ export const ControlAgentGraphSmena = async (
           const timeToRest = parseTimeStringToSeconds('02:00:00');
           let timeIsOff =
             fullDurationOfWorkTimeParseSeconds + startWorkTimeParseSeconds;
-          if ((worktime == '20-08')) {
+          if (worktime == '20-08') {
             const timeofOneDay = parseTimeStringToSeconds('24:00:00');
             timeIsOff =
               fullDurationOfWorkTimeParseSeconds +

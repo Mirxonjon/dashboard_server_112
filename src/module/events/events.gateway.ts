@@ -84,7 +84,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // console.log('okkk');
 
     const GroupQueuesAtThemoment: any = await Promise.all(await Groupqueue());
-    // console.log('okkk' , GroupQueuesAtThemoment);
     await this.#_cache.set('GroupQueue', GroupQueuesAtThemoment, 3600000);
   }
 
