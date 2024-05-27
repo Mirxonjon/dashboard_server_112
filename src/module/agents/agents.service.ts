@@ -374,7 +374,30 @@ export class AgentsService {
       console.log('okkk', type_ban, results);
       allResults = results;
       allTotals = total;
-    } else {
+    } else if (type_ban == 'worked_less') {
+      console.log(findAgent);
+
+      const [results, total] = await agentControlGraphEntity
+        .findAndCount({
+          where: {
+            id_login: findAgent.id_login,
+            TimeWorkIsDone: false,
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+
+          order: {
+            create_data: 'DESC',
+          },
+          skip: offset,
+          take: pageSize,
+        })
+        .catch((e) => {
+          throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+        });
+      console.log('okkk', type_ban, results);
+      allResults = results;
+      allTotals = total;
+    } else  {
       const [results, total] = await agentControlGraphEntity
         .findAndCount({
           where: [
@@ -1038,6 +1061,17 @@ export class AgentsService {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
+          const CountNb = await agentControlGraphEntity
+          .count({
+            where: {
+              id_login: e.login.toString(),
+              LastLoginTime: 'not login' ,
+            },
+          })
+          .catch(() => {
+            throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+          });
+
         const CountAgentBlock = await agentslockEntity
           .count({
             where: {
@@ -1074,6 +1108,7 @@ export class AgentsService {
           CountAgentBlock,
           CountAgentBanTime,
           CountAgentWorkedLess,
+          CountNb
         });
       }
     }
@@ -1186,6 +1221,17 @@ export class AgentsService {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
+          const CountNb = await agentControlGraphEntity
+          .count({
+            where: {
+              id_login: e.id_login,
+              LastLoginTime: 'not login',
+            },
+          })
+          .catch(() => {
+            throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+          });
+
         const CountAgentBlock = await agentslockEntity
           .count({
             where: {
@@ -1222,6 +1268,7 @@ export class AgentsService {
           CountAgentBlock,
           CountAgentBanTime,
           CountAgentWorkedLess,
+          CountNb
         });
       }
     }

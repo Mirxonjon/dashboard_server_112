@@ -183,7 +183,7 @@ export class AgentsController {
   @ApiOkResponse()
   @ApiOperation({
     description: `1 operatorni kech qolishi,erta ketishi, to'liq ishlamaganligi haqida malumotlar. Sanani formati 01.04.2024
-      type_ban qabul qiladigan qiymatlar all = hammasi , not_at_work = nb , stay_up_late = ishga kech qolganlar ,left_work_early = ishdan erta ketganlar. 
+      type_ban qabul qiladigan qiymatlar all = hammasi , not_at_work = nb , stay_up_late = ishga kech qolganlar ,left_work_early = ishdan erta ketganlar , worked_less = 9 - soatdan kam ishlaganlar. 
       `,
   })
   async findControlTgraphData(
