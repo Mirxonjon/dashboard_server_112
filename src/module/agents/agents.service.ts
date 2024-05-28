@@ -1094,6 +1094,61 @@ export class AgentsService {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
+          const CountcontrolGraphAll =await agentControlGraphEntity
+          .count({
+            where:[
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: Not(true),
+                      LeftAfterWork: Not(true),
+                      TimeWorkIsDone: Not(true),
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: true,
+                      LeftAfterWork: true,
+                      TimeWorkIsDone: Not(true),
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: true,
+                      LeftAfterWork: Not(true),
+                      TimeWorkIsDone: Not(true),
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: Not(true),
+                      LeftAfterWork: true,
+                      TimeWorkIsDone: Not(true),
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: Not(true),
+                      LeftAfterWork: Not(true),
+                      TimeWorkIsDone: true,
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: true,
+                      LeftAfterWork: Not(true),
+                      TimeWorkIsDone: true,
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: Not(true),
+                      LeftAfterWork: true,
+                      TimeWorkIsDone: true,
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                  ],
+          })
+
         agents.push({
           agent_id: findAgent.agent_id,
           id: findAgent.id,
@@ -1103,6 +1158,7 @@ export class AgentsService {
           name: findAgent.name,
           create_data: findAgent.create_data,
           allworkTime,
+          countAllbanInfo : CountcontrolGraphAll + CountAgentBlock + CountAgentBanTime,
           CountAgentсomeToWorkLate: CountAgentсomeToWorkLate,
           CountAgentLeftAfterWork,
           CountAgentBlock,
@@ -1254,6 +1310,61 @@ export class AgentsService {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
+          const CountcontrolGraphAll =await agentControlGraphEntity
+          .count({
+            where:[
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: Not(true),
+                      LeftAfterWork: Not(true),
+                      TimeWorkIsDone: Not(true),
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: true,
+                      LeftAfterWork: true,
+                      TimeWorkIsDone: Not(true),
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: true,
+                      LeftAfterWork: Not(true),
+                      TimeWorkIsDone: Not(true),
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: Not(true),
+                      LeftAfterWork: true,
+                      TimeWorkIsDone: Not(true),
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: Not(true),
+                      LeftAfterWork: Not(true),
+                      TimeWorkIsDone: true,
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: true,
+                      LeftAfterWork: Not(true),
+                      TimeWorkIsDone: true,
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                    {
+                      id_login: findAgent.id_login,
+                      ComeToWorkOnTime: Not(true),
+                      LeftAfterWork: true,
+                      TimeWorkIsDone: true,
+                      create_data: Between(fromDateFormatted, untilDateFormatted),
+                    },
+                  ],
+          })
+
         agents.push({
           agent_id: findAgent.agent_id,
           id: findAgent.id,
@@ -1263,6 +1374,7 @@ export class AgentsService {
           create_data: findAgent.create_data,
           work_time,
           allworkTime,
+          countAllbanInfo : CountcontrolGraphAll + CountAgentBlock + CountAgentBanTime ,
           CountAgentсomeToWorkLate: CountAgentсomeToWorkLate,
           CountAgentLeftAfterWork,
           CountAgentBlock,
@@ -1389,9 +1501,6 @@ export class AgentsService {
                       },
                     },
                   }).catch((e) => console.log(e));
-                  // console.log(findDay);
-                  // console.log(findAgent ,'aaaaaaa')
-                  // console.log(dataDay , findDay);
                   let formatDate = new Date(
                     +dataDay[0]?.split('.')[2],
                     +dataDay[0]?.split('.')[1] - 1,
@@ -1399,8 +1508,6 @@ export class AgentsService {
                   );
 
                   if (findDay) {
-                    // console.log(updateAgent.raw[0].agent_id ,'okkk');
-
                     if (typesGraph.includes(dataDay[1])) {
                       await GraphDaysEntity.createQueryBuilder()
                         .update(GraphDaysEntity)
