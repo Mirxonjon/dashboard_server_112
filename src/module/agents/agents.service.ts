@@ -654,11 +654,26 @@ export class AgentsService {
 
     let allAgents = [...agentsGraph, ...agents];
 
+    let AllOperators: any[] = [];
+
+    for (let e of allAgents) {
+      let arr = [];
+      for (let j of AllOperators) {
+        arr.push(j.id);
+      }
+      if (!arr.includes(e.id)) {
+        AllOperators.push(e);
+      }
+    }
+
     const startIndex = (pageNumber - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const paginatedAgents = allAgents.slice(startIndex, endIndex);
+    const paginatedAgents = AllOperators.slice(startIndex, endIndex);
 
-    const totalCount = allAgents.length;
+    const totalCount = AllOperators.length;
+
+    console.log(allAgents.length, );
+    
 
     return {
       agents: paginatedAgents,
