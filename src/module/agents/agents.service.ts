@@ -321,7 +321,6 @@ export class AgentsService {
 
           throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
         });
-      console.log('okkk', type_ban, results);
       allResults = results;
       allTotals = total;
     } else if (type_ban == 'left_work_early') {
@@ -1048,6 +1047,10 @@ export class AgentsService {
             where: {
               id_login: e.login.toString(),
               TimeWorkIsDone: false,
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1059,6 +1062,10 @@ export class AgentsService {
             where: {
               id_login: e.login.toString(),
               ComeToWorkOnTime: false,
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1070,6 +1077,10 @@ export class AgentsService {
             where: {
               id_login: e.login.toString(),
               LeftAfterWork: false,
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1081,6 +1092,10 @@ export class AgentsService {
             where: {
               id_login: e.login.toString(),
               LastLoginTime: 'not login' ,
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1092,6 +1107,10 @@ export class AgentsService {
             where: {
               id: e.id,
               banInfo: 'block',
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1103,6 +1122,10 @@ export class AgentsService {
             where: {
               id: e.id,
               banInfo: 'time',
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1264,6 +1287,10 @@ export class AgentsService {
             where: {
               id_login: e.id_login,
               TimeWorkIsDone: false,
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1275,6 +1302,10 @@ export class AgentsService {
             where: {
               id_login: e.id_login,
               ComeToWorkOnTime: false,
+              create_data :Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1286,6 +1317,10 @@ export class AgentsService {
             where: {
               id_login: e.id_login,
               LeftAfterWork: false,
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1297,6 +1332,10 @@ export class AgentsService {
             where: {
               id_login: e.id_login,
               LastLoginTime: 'not login',
+              create_data: Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1308,6 +1347,10 @@ export class AgentsService {
             where: {
               id: e.id,
               banInfo: 'block',
+              create_data: Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
@@ -1319,6 +1362,10 @@ export class AgentsService {
             where: {
               id: e.id,
               banInfo: 'time',
+              create_data : Between(
+                fromDateFormatted,
+                untilDateFormatted,
+              ),
             },
           })
           .catch(() => {
