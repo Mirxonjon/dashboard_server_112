@@ -61,6 +61,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await operatorsWhere(this.bot),
     );
 
+    console.log(operatorsWhereatThemoment , 'okkkk');
+    
     await this.#_cache.set('lockOperators', operatorsWhereatThemoment, 3600000);
   }
 

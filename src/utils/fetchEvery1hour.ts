@@ -135,16 +135,20 @@ export const operatorsWhere = async (
 
   for (let i = 0; i < agents.length; i++) {
     if (agents[i]['ct:ip'][0]) {
-      const arr = ['2', '4', '3', '6'];
+      const arr = [ '0' ,'2', '3', '4', '6','8' ,'11'];
       const findAgent = await agentsDataStateEntity.findOneBy({
         id: agents[i]['ct:id'][0],
       });
+      // console.log(findAgent , 'f');
       if (arr.includes(agents[i]['ct:lockCause'][0]) && findAgent) {
+
         if (
           findAgent.lockCause == agents[i]['ct:lockCause'][0] &&
           agents[i]['ct:agentStateDuration'][0] > 600
         ) {
           if (!findAgent.IsSupervazer) {
+      console.log(findAgent , 'f');
+
             const findAgentlock = await agentslockEntity.find({
               where: {
                 id: agents[i]['ct:id'][0],
@@ -163,6 +167,8 @@ export const operatorsWhere = async (
                 process.env.TG_Chanel_ID,
                 ` ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} превысил 10-минутный перерыв`,
               );
+              // console.log(findAgent , 'f');
+              
               await agentsDataStateEntity.update(
                 { id: findAgent.id },
                 {
@@ -192,7 +198,7 @@ export const operatorsWhere = async (
               );
             }
 
-            if (findAgentlock[0] && !findAgent.addToblockTable) {
+            if (findAgentlock[0] && !findAgent.addToblockTable) { 
               await agentslockEntity.update(
                 { agent_id: findAgentlock[0].agent_id },
                 {
@@ -245,6 +251,10 @@ export const operatorsWhere = async (
           findAgent.lockCause != agents[i]['ct:lockCause'][0] &&
           arr.includes(`${findAgent.lockCause}`)
         ) {
+
+      // console.log(findAgent , 'wwwf');
+
+
           if (!findAgent.IsSupervazer) {
             const findAgentlock = await agentslockEntity.find({
               where: {
@@ -279,6 +289,7 @@ export const operatorsWhere = async (
                     : findAgentlock[0].lastAgentStateDuration,
                 lockCause: agents[i]['ct:lockCause'][0],
                 lastLockCause: findAgent.lockCause,
+                banInfo: 'block',
               });
             } else {
               await agentslockEntity.save({
@@ -309,12 +320,17 @@ export const operatorsWhere = async (
                 banInfo: 'block',
               });
               const message = {
+                '0' : '🔒',
                 '2': '🚬',
                 '3': '👑',
                 '4': '💻',
                 '6': '🏃',
                 '7': '🧑‍🎓',
+                '8': '🔜',
+                '11': ''
               };
+      const arr = [ '0' ,'2', '3', '4', '6','8' ,'11'];
+
               await bot.telegram.sendMessage(
                 process.env.TG_Chanel_ID,
                 `   ${findAgent.lastName} ${findAgent.firstName} ${
