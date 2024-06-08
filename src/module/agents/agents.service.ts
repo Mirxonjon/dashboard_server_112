@@ -279,7 +279,7 @@ export class AgentsService {
         agent_id,
       },
     }).catch((e) => {
-      console.log(e, agent_id);
+      // console.log(e, agent_id);
 
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     });
@@ -300,7 +300,7 @@ export class AgentsService {
     let allResults = [];
     let allTotals = 0;
     if (type_ban == 'stay_up_late') {
-      console.log(findAgent);
+      // console.log(findAgent);
 
       const [results, total] = await agentControlGraphEntity
         .findAndCount({
@@ -317,14 +317,14 @@ export class AgentsService {
           take: pageSize,
         })
         .catch((e) => {
-          console.log(e, 'lllll');
+          // console.log(e, 'lllll');
 
           throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
         });
       allResults = results;
       allTotals = total;
     } else if (type_ban == 'left_work_early') {
-      console.log(findAgent);
+      // console.log(findAgent);
 
       const [results, total] = await agentControlGraphEntity
         .findAndCount({
@@ -341,15 +341,15 @@ export class AgentsService {
           take: pageSize,
         })
         .catch((e) => {
-          console.log(e, 'lllll');
+          // console.log(e, 'lllll');
 
           throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
         });
-      console.log('okkk', type_ban, results);
+      // console.log('okkk', type_ban, results);
       allResults = results;
       allTotals = total;
     } else if (type_ban == 'not_at_work') {
-      console.log(findAgent);
+      // console.log(findAgent);
 
       const [results, total] = await agentControlGraphEntity
         .findAndCount({
@@ -366,15 +366,15 @@ export class AgentsService {
           take: pageSize,
         })
         .catch((e) => {
-          console.log(e, 'lllll');
+          // console.log(e, 'lllll');
 
           throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
         });
-      console.log('okkk', type_ban, results);
+      // console.log('okkk', type_ban, results);
       allResults = results;
       allTotals = total;
     } else if (type_ban == 'worked_less') {
-      console.log(findAgent);
+      // console.log(findAgent);
 
       const [results, total] = await agentControlGraphEntity
         .findAndCount({
@@ -393,7 +393,7 @@ export class AgentsService {
         .catch((e) => {
           throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
         });
-      console.log('okkk', type_ban, results);
+      // console.log('okkk', type_ban, results);
       allResults = results;
       allTotals = total;
     } else  {
@@ -459,74 +459,12 @@ export class AgentsService {
         .catch(() => {
           throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
         });
-      console.log('EEEEEE');
+      // console.log('EEEEEE');
 
       allResults = results;
       allTotals = total;
     }
 
-    // const [results, total] = await agentControlGraphEntity
-    //   .findAndCount({
-    //     where: [
-    //       {
-    //         id_login: findAgent.id_login,
-    //         ComeToWorkOnTime: Not(true),
-    //         LeftAfterWork: Not(true),
-    //         TimeWorkIsDone: Not(true),
-    //         create_data: Between(fromDateFormatted, untilDateFormatted),
-    //       },
-    //       {
-    //         id_login: findAgent.id_login,
-    //         ComeToWorkOnTime: true,
-    //         LeftAfterWork: true,
-    //         TimeWorkIsDone: Not(true),
-    //         create_data: Between(fromDateFormatted, untilDateFormatted),
-    //       },
-    //       {
-    //         id_login: findAgent.id_login,
-    //         ComeToWorkOnTime: true,
-    //         LeftAfterWork: Not(true),
-    //         TimeWorkIsDone: Not(true),
-    //         create_data: Between(fromDateFormatted, untilDateFormatted),
-    //       },
-    //       {
-    //         id_login: findAgent.id_login,
-    //         ComeToWorkOnTime: Not(true),
-    //         LeftAfterWork: true,
-    //         TimeWorkIsDone: Not(true),
-    //         create_data: Between(fromDateFormatted, untilDateFormatted),
-    //       },
-    //       {
-    //         id_login: findAgent.id_login,
-    //         ComeToWorkOnTime: Not(true),
-    //         LeftAfterWork: Not(true),
-    //         TimeWorkIsDone: true,
-    //         create_data: Between(fromDateFormatted, untilDateFormatted),
-    //       },
-    //       {
-    //         id_login: findAgent.id_login,
-    //         ComeToWorkOnTime: true,
-    //         LeftAfterWork: Not(true),
-    //         TimeWorkIsDone: true,
-    //         create_data: Between(fromDateFormatted, untilDateFormatted),
-    //       },
-    //       {
-    //         id_login: findAgent.id_login,
-    //         ComeToWorkOnTime: Not(true),
-    //         LeftAfterWork: true,
-    //         TimeWorkIsDone: true,
-    //         create_data: Between(fromDateFormatted, untilDateFormatted),
-    //       },
-    //     ],
-    //     order: {
-    //       create_data: 'DESC',
-    //     },
-    //     skip: offset,
-    //     take: pageSize,
-    //   })
-    //   .catch(() => {
-    //     throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-    //   });
 
     const agentData = await agentControlGraphEntity
       .find({
@@ -620,11 +558,23 @@ export class AgentsService {
 
     const findBlockAgents = await agentslockEntity
       .find({
-        where: {
+        where: [{
           login: login == 'null' ? null : +login,
           lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
           create_data: Between(fromDateFormatted, untilDateFormatted),
         },
+        {
+          login: login == 'null' ? null : +login,
+          firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        {
+          login: login == 'null' ? null : +login,
+          secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        
+      ],
         order: {
           create_data: 'desc',
         },
@@ -632,6 +582,8 @@ export class AgentsService {
       .catch(() => {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
       });
+      console.log(findBlockAgents, '111111');
+      
 
     let AllbanTimeOperators: agentslockEntity[] = [];
 
@@ -671,7 +623,7 @@ export class AgentsService {
 
     const totalCount = AllOperators.length;
 
-    console.log(allAgents.length, );
+    // console.log(allAgents.length, );
     
 
     return {
@@ -875,12 +827,23 @@ export class AgentsService {
 
     const findAgents = await agentslockEntity
       .find({
-        where: {
+        where: [{
           login: login == 'null' ? null : +login,
           lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          banInfo: 'time',
           create_data: Between(fromDateFormatted, untilDateFormatted),
         },
+        {
+          login: login == 'null' ? null : +login,
+          firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        {
+          login: login == 'null' ? null : +login,
+          secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        
+      ],
         order: {
           create_data: 'desc',
         },
@@ -932,12 +895,22 @@ export class AgentsService {
 
     const findAgents = await agentslockEntity
       .find({
-        where: {
+        where:[{
           login: login == 'null' ? null : +login,
           lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          banInfo: 'block',
           create_data: Between(fromDateFormatted, untilDateFormatted),
         },
+        {
+          login: login == 'null' ? null : +login,
+          firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        },
+        {
+          login: login == 'null' ? null : +login,
+          secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
+          create_data: Between(fromDateFormatted, untilDateFormatted),
+        }, 
+      ],
         order: {
           create_data: 'desc',
         },
@@ -1975,7 +1948,7 @@ export class AgentsService {
   }
 
   @Cron('0 */25 * * * *')
-  async controlOperator1() {
+  async controlOperator() {
     const atDate = new Date();
 
     const theCurrentHour = atDate.getHours();
@@ -2076,437 +2049,5 @@ export class AgentsService {
     }
   }
 
-  // @Cron(CronExpression.EVERY_5_SECONDS)
-  async controlOperator() {
-    // const data = await fetchGetagentStatistic(2751)
-    // console.log(data,'lll');
-    const theDate = '01.04.2024';
-    const atDate = new Date();
-    const theMonth: number = +theDate.split('.')[1];
-    const theYear: string = theDate.split('.')[2];
-
-    // const atDate = new Date()
-    const theCurrentHour = 16;
-
-    // console.log(convertDate(atDate));
-
-    if (
-      (6 <= theCurrentHour && theCurrentHour <= 8) ||
-      (15 <= theCurrentHour && theCurrentHour <= 17)
-    ) {
-      const atDate = new Date();
-      const theDate = convertDate(atDate);
-      const theMonth: number = +theDate.split('.')[1];
-      const theYear: string = theDate.split('.')[2];
-
-      const fromDate = new Date();
-      fromDate.setHours(0, 0, 0, 0);
-
-      const untilDate = new Date();
-      untilDate.setHours(23, 59, 59, 999);
-      // console.log(   e ,'qq');
-      const startWorkTimeParseSeconds = parseTimeStringToSeconds('08:00:00');
-      const endWorkTimeParseSeconds = parseTimeStringToSeconds('17:00:00');
-
-      const listOfWorkersToday: any = await GraphDaysEntity.find({
-        where: {
-          the_date: theDate,
-          work_type: 'day',
-          work_time: '08-18',
-          month_id: {
-            month_number: theMonth,
-            year: theYear,
-          },
-        },
-        relations: {
-          month_id: {
-            agent_id: true,
-          },
-        },
-      });
-      // console.log(listOfWorkersToday , ';;;');
-
-      listOfWorkersToday?.forEach(async (e) => {
-        // console.log(e.month_id?.agent_id.id_login);
-        const findAgentinControlGraph: agentControlGraphEntity =
-          await agentControlGraphEntity
-            .findOne({
-              where: {
-                id_login: e.month_id?.agent_id?.id_login,
-                create_data: Between(fromDate, untilDate),
-              },
-            })
-            .catch((e) => {
-              // console.log(e);
-              throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-            });
-        //  console.log(findAgentinControlGraph);
-
-        const agentStatistic = await fetchGetagentStatistic(
-          e.month_id?.agent_id.id,
-        );
-        if (6 <= theCurrentHour && theCurrentHour <= 8) {
-          if (findAgentinControlGraph) {
-            if (
-              agentStatistic.LastLoginTime != 'not login' &&
-              findAgentinControlGraph.LastLoginTime != 'not login'
-            ) {
-              // console.log(findAgentinControlGraph,'0');
-
-              await agentControlGraphEntity
-                .createQueryBuilder()
-                .update(agentControlGraphEntity)
-                .set({
-                  LastLoginTime: findAgentinControlGraph.LastLoginTime,
-                  FullDurationOfWork: agentStatistic.FulDuration,
-                  PauseDuration: agentStatistic.PauseDuration,
-                  TimeWorkDuration: subtractTime(
-                    agentStatistic.FulDuration,
-                    agentStatistic.PauseDuration,
-                  ),
-                })
-                .where({ agent_id: findAgentinControlGraph.agent_id })
-                .execute();
-            } else if (
-              agentStatistic.LastLoginTime == 'not login' &&
-              findAgentinControlGraph.LastLoginTime != 'not login'
-            ) {
-              // console.log(findAgentinControlGraph,'1');
-
-              await agentControlGraphEntity
-                .createQueryBuilder()
-                .update(agentControlGraphEntity)
-                .set({
-                  LastLoginTime: findAgentinControlGraph.LastLoginTime,
-                  FullDurationOfWork: agentStatistic.FulDuration,
-                  PauseDuration: agentStatistic.PauseDuration,
-                  TimeWorkDuration: subtractTime(
-                    agentStatistic.FulDuration,
-                    agentStatistic.PauseDuration,
-                  ),
-                })
-                .where({ agent_id: findAgentinControlGraph.agent_id })
-                .returning(['id'])
-                .execute();
-            } else if (agentStatistic.LastLoginTime == 'not login') {
-              //  console.log(findAgentinControlGraph,'2');
-
-              await agentControlGraphEntity
-                .createQueryBuilder()
-                .update(agentControlGraphEntity)
-                .set({
-                  LastLoginTime: agentStatistic.LastLoginTime,
-                  FullDurationOfWork: agentStatistic.FulDuration,
-                  PauseDuration: agentStatistic.PauseDuration,
-                })
-                .where({ agent_id: findAgentinControlGraph.agent_id })
-                .returning(['id'])
-                .execute();
-            } else {
-              const lastLoginTimeParseSeconds = parseTimeStringToSeconds(
-                agentStatistic.LastLoginTime,
-              );
-
-              if (lastLoginTimeParseSeconds >= startWorkTimeParseSeconds) {
-                //  console.log(findAgentinControlGraph,agentStatistic,'3');
-
-                await agentControlGraphEntity
-                  .createQueryBuilder()
-                  .update(agentControlGraphEntity)
-                  .set({
-                    LastLoginTime: agentStatistic.LastLoginTime,
-                    FullDurationOfWork: agentStatistic.FulDuration,
-                    PauseDuration: agentStatistic.PauseDuration,
-                    TimeWorkDuration: subtractTime(
-                      agentStatistic.FulDuration,
-                      agentStatistic.PauseDuration,
-                    ),
-                  })
-                  .where({ agent_id: findAgentinControlGraph.agent_id })
-                  .execute();
-              } else {
-                //  console.log(findAgentinControlGraph, agentStatistic ,'4');
-
-                await agentControlGraphEntity
-                  .createQueryBuilder()
-                  .update(agentControlGraphEntity)
-                  .set({
-                    LastLoginTime: agentStatistic.LastLoginTime,
-                    FullDurationOfWork: agentStatistic.FulDuration,
-                    PauseDuration: agentStatistic.PauseDuration,
-                    TimeWorkDuration: subtractTime(
-                      agentStatistic.FulDuration,
-                      agentStatistic.PauseDuration,
-                    ),
-                    ComeToWorkOnTime: true,
-                  })
-                  .where({ agent_id: findAgentinControlGraph.agent_id })
-                  .execute();
-              }
-            }
-          } else {
-            const agentStatistic = await fetchGetagentStatistic(2751);
-
-            if ((agentStatistic.LastLoginTime = 'not login')) {
-              // console.log('okkk1');
-
-              await agentControlGraphEntity
-                .createQueryBuilder()
-                .insert()
-                .into(agentControlGraphEntity)
-                .values({
-                  id: '2751',
-                  id_login: e.month_id?.agent_id?.id_login,
-                  id_login_type_number: +e.month_id?.agent_id?.id_login,
-                  name: e.month_id?.agent_id?.name,
-                  timeWork: e.work_time,
-                  typeWork: e.work_type,
-                  LastLoginTime: agentStatistic.LastLoginTime,
-                  FullDurationOfWork: agentStatistic.FulDuration,
-                  PauseDuration: agentStatistic.PauseDuration,
-                  TimeWorkDuration: subtractTime(
-                    agentStatistic.FulDuration,
-                    agentStatistic.PauseDuration,
-                  ),
-                })
-                .execute()
-                .catch((e) => {
-                  throw new HttpException(
-                    'Bad Request',
-                    HttpStatus.BAD_REQUEST,
-                  );
-                });
-            } else {
-              // console.log('okkk2');
-
-              const lastLoginTimeParseSeconds = parseTimeStringToSeconds(
-                agentStatistic.LastLoginTime,
-              );
-              if (lastLoginTimeParseSeconds >= startWorkTimeParseSeconds) {
-                await agentControlGraphEntity
-                  .createQueryBuilder()
-                  .insert()
-                  .into(agentControlGraphEntity)
-                  .values({
-                    id: '2751',
-                    id_login: e.month_id[0]?.agent_id[0].id_login,
-                    id_login_type_number: +e.month_id[0]?.agent_id[0].id_login,
-                    name: e.month_id[0]?.agent_id[0].name,
-                    timeWork: e.work_time,
-                    typeWork: e.work_type,
-                    LastLoginTime: agentStatistic.LastLoginTime,
-                    FullDurationOfWork: agentStatistic.FulDuration,
-                    PauseDuration: agentStatistic.PauseDuration,
-                    TimeWorkDuration: subtractTime(
-                      agentStatistic.FulDuration,
-                      agentStatistic.PauseDuration,
-                    ),
-                  })
-                  .execute()
-                  .catch((e) => {
-                    throw new HttpException(
-                      'Bad Request',
-                      HttpStatus.BAD_REQUEST,
-                    );
-                  });
-              } else {
-                // console.log('okkk3');
-
-                await agentControlGraphEntity
-                  .createQueryBuilder()
-                  .insert()
-                  .into(agentControlGraphEntity)
-                  .values({
-                    id: '2751',
-                    id_login: e.month_id[0]?.agent_id[0].id_login,
-                    id_login_type_number: +e.month_id[0]?.agent_id[0].id_login,
-                    name: e.month_id[0]?.agent_id[0].name,
-                    timeWork: e.work_time,
-                    typeWork: e.work_type,
-                    LastLoginTime: agentStatistic.LastLoginTime,
-                    FullDurationOfWork: agentStatistic.FulDuration,
-                    PauseDuration: agentStatistic.PauseDuration,
-                    TimeWorkDuration: subtractTime(
-                      agentStatistic.FulDuration,
-                      agentStatistic.PauseDuration,
-                    ),
-                    ComeToWorkOnTime: true,
-                  })
-                  .execute()
-                  .catch((e) => {
-                    throw new HttpException(
-                      'Bad Request',
-                      HttpStatus.BAD_REQUEST,
-                    );
-                  });
-              }
-            }
-          }
-        } else {
-          if (findAgentinControlGraph) {
-            //  console.log(agentStatistic);
-            if (findAgentinControlGraph.WorkState != 'did not work') {
-              const fullDurationOfWorkTimeParseSeconds =
-                parseTimeStringToSeconds(agentStatistic.FulDuration);
-              const PauseDurationTimeParseSeconds = parseTimeStringToSeconds(
-                agentStatistic.PauseDuration,
-              );
-              const timeofWork = parseTimeStringToSeconds('09:00:00');
-              const timeofWorkOtherThanRest =
-                parseTimeStringToSeconds('07:30:00');
-              const timeToRest = parseTimeStringToSeconds('01:30:00');
-              if (
-                endWorkTimeParseSeconds <=
-                fullDurationOfWorkTimeParseSeconds + startWorkTimeParseSeconds
-              ) {
-                if (PauseDurationTimeParseSeconds <= timeToRest) {
-                  // console.log(findAgentinControlGraph,'elsedan 1');
-
-                  await agentControlGraphEntity
-                    .createQueryBuilder()
-                    .update(agentControlGraphEntity)
-                    .set({
-                      FullDurationOfWork: agentStatistic.FulDuration,
-                      PauseDuration: agentStatistic.PauseDuration,
-                      TimeWorkDuration: subtractTime(
-                        agentStatistic.FulDuration,
-                        agentStatistic.PauseDuration,
-                      ),
-                      LeftAfterWork: true,
-                      TimeWorkIsDone: true,
-                      TimeWorked:
-                        timeofWorkOtherThanRest +
-                        timeToRest -
-                        fullDurationOfWorkTimeParseSeconds,
-                    })
-                    .where({ agent_id: findAgentinControlGraph?.agent_id })
-                    .execute();
-                } else {
-                  // console.log(findAgentinControlGraph,'elsedan 2' , PauseDurationTimeParseSeconds , timeToRest ,timeofWorkOtherThanRest + timeToRest  - fullDurationOfWorkTimeParseSeconds );
-
-                  await agentControlGraphEntity
-                    .createQueryBuilder()
-                    .update(agentControlGraphEntity)
-                    .set({
-                      FullDurationOfWork: agentStatistic.FulDuration,
-                      PauseDuration: agentStatistic.PauseDuration,
-                      TimeWorkDuration: subtractTime(
-                        agentStatistic.FulDuration,
-                        agentStatistic.PauseDuration,
-                      ),
-                      LeftAfterWork: true,
-                      TimeWorked:
-                        timeofWorkOtherThanRest +
-                        timeToRest -
-                        fullDurationOfWorkTimeParseSeconds,
-                    })
-                    .where({ agent_id: findAgentinControlGraph.agent_id })
-                    .execute();
-                }
-              } else {
-                const timeWorked =
-                  timeofWorkOtherThanRest +
-                  timeToRest -
-                  fullDurationOfWorkTimeParseSeconds;
-                if (
-                  PauseDurationTimeParseSeconds <= timeToRest &&
-                  timeWorked < 0
-                ) {
-                  // console.log(findAgentinControlGraph,'elsedan 3');
-
-                  await agentControlGraphEntity
-                    .createQueryBuilder()
-                    .update(agentControlGraphEntity)
-                    .set({
-                      FullDurationOfWork: agentStatistic.FulDuration,
-                      PauseDuration: agentStatistic.PauseDuration,
-                      TimeWorkDuration: subtractTime(
-                        agentStatistic.FulDuration,
-                        agentStatistic.PauseDuration,
-                      ),
-                      // LeftAfterWork :true,
-                      TimeWorkIsDone: true,
-                      TimeWorked:
-                        timeofWorkOtherThanRest +
-                        timeToRest -
-                        fullDurationOfWorkTimeParseSeconds,
-                    })
-                    .where({ agent_id: findAgentinControlGraph.agent_id })
-                    .execute();
-                } else {
-                  // console.log(findAgentinControlGraph,'elsedan 5');
-
-                  await agentControlGraphEntity
-                    .createQueryBuilder()
-                    .update(agentControlGraphEntity)
-                    .set({
-                      FullDurationOfWork: agentStatistic.FulDuration,
-                      PauseDuration: agentStatistic.PauseDuration,
-                      TimeWorkDuration: subtractTime(
-                        agentStatistic.FulDuration,
-                        agentStatistic.PauseDuration,
-                      ),
-                      // LeftAfterWork :true,
-                      TimeWorked:
-                        timeofWorkOtherThanRest +
-                        timeToRest -
-                        fullDurationOfWorkTimeParseSeconds,
-                    })
-                    .where({ agent_id: findAgentinControlGraph.agent_id })
-                    .execute();
-                }
-              }
-            } else {
-              // console.log('okkk4');
-
-              await agentControlGraphEntity
-                .createQueryBuilder()
-                .update(agentControlGraphEntity)
-                .set({
-                  LastLoginTime: agentStatistic.LastLoginTime,
-                  FullDurationOfWork: agentStatistic.FulDuration,
-                  PauseDuration: agentStatistic.PauseDuration,
-                  TimeWorkDuration: subtractTime(
-                    agentStatistic.FulDuration,
-                    agentStatistic.PauseDuration,
-                  ),
-                  // ComeToWorkOnTime :true
-                })
-                .where({ agent_id: findAgentinControlGraph.agent_id })
-                .execute();
-            }
-          } else {
-            // console.log('okk' , e , e.month_id.agent_id.id_login, );
-            await agentControlGraphEntity
-              .createQueryBuilder()
-              .insert()
-              .into(agentControlGraphEntity)
-              .values({
-                id: '2751',
-                id_login: e.month_id?.agent_id.id_login,
-                id_login_type_number: +e.month_id?.agent_id.id_login,
-                name: e.month_id?.agent_id.name,
-                timeWork: e.work_time,
-                typeWork: e.work_type,
-                LastLoginTime: agentStatistic.LastLoginTime,
-                FullDurationOfWork: agentStatistic.FulDuration,
-                PauseDuration: agentStatistic.PauseDuration,
-                TimeWorkDuration: subtractTime(
-                  agentStatistic.FulDuration,
-                  agentStatistic.PauseDuration,
-                ),
-                //   ComeToWorkOnTime: true
-                WorkState: 'did not work',
-              })
-              .execute()
-              .catch((e) => {
-                // console.log(e);
-
-                throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-              });
-          }
-        }
-      });
-    }
-  }
+  
 }

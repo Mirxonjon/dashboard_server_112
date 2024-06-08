@@ -23,6 +23,7 @@ import { Cache } from 'cache-manager';
 import { Groupqueue } from 'src/utils/fetcheEvery5s';
 import { readSheets } from 'src/utils/google_cloud';
 import { findDidNotComeToWorkOnTime } from 'src/utils/agentControlfunctions';
+
 dotenv.config();
 
 @Injectable()
@@ -34,24 +35,23 @@ dotenv.config();
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   readonly #_cache: Cache;
-
-  async handleConnection(client: Socket) {
-    // return 'Connected to the server.'
-    this.server.emit('connected', 'Connected to the server.');
-    // const findgroups = await GroupsEntity.find();
-    // this.server.emit('groups', findgroups);
-  }
-
   public bot: Telegraf;
-
   constructor(@Inject(CACHE_MANAGER) cache: Cache) {
     this.bot = new Telegraf(process.env.BOT_TOKEN);
     this.#_cache = cache;
   }
 
+  async handleConnection(client: Socket) {
+    this.server.emit('connected', 'Connected to the server.');
+
+  }
+
+
+  // @Cron(CronExpression.EVERY_SECOND)
   @Cron('59 18 * * *')
   fetchdata1() {
-    // console.log('okkkk' , new Date());
+
+    console.log('okkkk' , new Date());
     fetchStatisticByGroup();
   }
 
@@ -61,7 +61,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await operatorsWhere(this.bot),
     );
 
-    console.log(operatorsWhereatThemoment , 'okkkk');
+    // console.log(operatorsWhereatThemoment , 'okkkk');
     
     await this.#_cache.set('lockOperators', operatorsWhereatThemoment, 3600000);
   }

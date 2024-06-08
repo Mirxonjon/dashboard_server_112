@@ -40,6 +40,15 @@ export const fetchStatisticByGroup = async () => {
     );
     const convertedData = await parseStringPromise(data);
 
+    console.log(convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ]);
+    console.log(convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]);
+
     const acceptedCallCount =
       convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
         'ct:PrCtGetStatisticTlvResp'
@@ -83,7 +92,13 @@ export const fetchStatisticByGroup = async () => {
         'ct:TmStatDataValueTlv'
       ][39]['ct:strValue'][0];
 
-    // console.log('okkk');
+    console.log(    acceptedCallCount,
+      presentedCallCount,
+      lostCallCount,
+      straggleCallCount,
+      averageTimeBeforeConnect,
+      averageCallDuration,
+      queueDispatchedCallCoun,);
 
     dataGroupEntity.save({
       group_id: e.group_id,
