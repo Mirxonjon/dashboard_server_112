@@ -47,8 +47,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
-  // @Cron('59 18 * * *')
+  // @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron('59 18 * * *')
  async fetchdata1() {
 
     // console.log('okkkk' , new Date());
