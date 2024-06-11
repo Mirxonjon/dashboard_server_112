@@ -10,15 +10,11 @@ import { Telegraf, Context } from 'telegraf';
 import { Update } from 'telegraf/typings/core/types/typegram';
 import * as dotenv from 'dotenv';
 
-export const fetchStatisticByGroup = async () => {
+export const fetchStatisticByGroup = async (bot:Telegraf<Context<Update>>) => {
   const findGroups = await GroupsEntity.find();
 
   findGroups.forEach(async (e) => {
-    // const sampleHeaders = {
-    //   'user-agent': 'sampleTest',
-    //   'Content-Type': 'text/xml;charset=UTF-8',
-    //   soapAction: 'urn:ct/ctPortType/PrCtGetStatisticTlvRequest',
-    // };
+
     const xml = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:ct">
       <soapenv:Header/>
       <soapenv:Body>
@@ -26,8 +22,8 @@ export const fetchStatisticByGroup = async () => {
             <!--Optional:-->
             <urn:PrCtGetStatisticTlvReq>
                <urn:ObjectType>2</urn:ObjectType>
-               <!--Zero or more repetitions:-->
-               <urn:listID>${e.group_id}</urn:listID>
+               <!--Zero or more repetitions:-->            
+                <urn:listID>${e.group_id}</urn:listID>
             </urn:PrCtGetStatisticTlvReq>
          </urn:PrCtGetStatisticTlv>
       </soapenv:Body>
@@ -35,11 +31,10 @@ export const fetchStatisticByGroup = async () => {
 
     const { data } = await axios.post(
       'http://10.145.34.3:15358/ct?wsdl',
-      xml,
-      // { headers: sampleHeaders },
+      xml
     );
     const convertedData = await parseStringPromise(data);
-
+    // <urn:listID>${e.group_id}</urn:listID>
     console.log(convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
       'ct:PrCtGetStatisticTlvResp'
     ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
@@ -55,36 +50,434 @@ export const fetchStatisticByGroup = async () => {
       ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
         'ct:TmStatDataValueTlv'
       ][1]['ct:strValue'][0];
+
     const presentedCallCount =
       convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
         'ct:PrCtGetStatisticTlvResp'
       ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
         'ct:TmStatDataValueTlv'
       ][2]['ct:strValue'][0];
+      const FailedCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][3]['ct:strValue'][0];
+      const TransferCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][4]['ct:strValue'][0];
+      const TransferToServiceCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][5]['ct:strValue'][0];
+      const TransferToGroupCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][6]['ct:strValue'][0];
+      const TransferToAgentCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][7]['ct:strValue'][0];
+      const TransferToOutCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][8]['ct:strValue'][0];
+      const ConsultCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][9]['ct:strValue'][0];
+      const ExternalCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][10]['ct:strValue'][0];
+      const FailedExternalCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][11]['ct:strValue'][0];
+      const IndirectedCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][12]['ct:strValue'][0];
+      const ReturnedFromIVRCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][13]['ct:strValue'][0];
+      const NotActualCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][14]['ct:strValue'][0];
     const lostCallCount =
       convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
         'ct:PrCtGetStatisticTlvResp'
       ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
         'ct:TmStatDataValueTlv'
       ][15]['ct:strValue'][0];
+      const MistakedCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][16]['ct:strValue'][0];
+
     const straggleCallCount =
       convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
         'ct:PrCtGetStatisticTlvResp'
       ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
         'ct:TmStatDataValueTlv'
       ][17]['ct:strValue'][0];
-    const averageTimeBeforeConnect =
+      const DistributeWithQueueCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][18]['ct:strValue'][0];
+      const DistributeWithoutQueueCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][19]['ct:strValue'][0];
+      const NoAnswerCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][20]['ct:strValue'][0];
+      const NoAnswerCountWithoutQueue =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][21]['ct:strValue'][0];
+      const AverageTimeBeforeConnect =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][25]['ct:strValue'][0];
+    const AverageCallDuration =
       convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
         'ct:PrCtGetStatisticTlvResp'
       ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
         'ct:TmStatDataValueTlv'
       ][26]['ct:strValue'][0];
-    const averageCallDuration =
+    const AverageQueueDuration =
       convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
         'ct:PrCtGetStatisticTlvResp'
       ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
         'ct:TmStatDataValueTlv'
       ][27]['ct:strValue'][0];
+      const AverageQueueDispatchedDuration =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][28]['ct:strValue'][0];
+      const AverageQueueFailedDuration =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][29]['ct:strValue'][0];
+      const MaxQueueDuration =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][30]['ct:strValue'][0];
+
+      const QueuedCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][33]['ct:strValue'][0];
+      const LongQueueCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][34]['ct:strValue'][0];
+      const QueueThresholdCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][35]['ct:strValue'][0];
+      const QueueThresholdCallCount2 =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][36]['ct:strValue'][0];
+      const QueueThresholdDispatchedCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][37]['ct:strValue'][0];
+
+      const QueueDispatchedCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][38]['ct:strValue'][0];
+
+      const QueuedFailedCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][39]['ct:strValue'][0];
+      const ThresholdBrakeCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][40]['ct:strValue'][0];
+
+      const QueueDeletedCallCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][41]['ct:strValue'][0];
+      const CurrentQueueSize =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][42]['ct:strValue'][0];
+
+      const MaxQueueSize =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][43]['ct:strValue'][0];
+      
+
+      
+      const CreatedCallbackCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][46]['ct:strValue'][0];
+
+      const CreatedAutoCallbackCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][47]['ct:strValue'][0];
+
+      const QueueCreatedCallbackCount =
+      convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+        'ct:PrCtGetStatisticTlvResp'
+      ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+        'ct:TmStatDataValueTlv'
+      ][48]['ct:strValue'][0];
+
+          const QueueCreatedAutoCallbackCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][49]['ct:strValue'][0];
+
+    const FailedCallbackAttemptCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][50]['ct:strValue'][0];
+
+    const ServedCallbackAttemptCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][51]['ct:strValue'][0];
+
+    const NoAnswerCallbackAttemptCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][52]['ct:strValue'][0];
+
+    const BusyCallbackAttemptCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][53]['ct:strValue'][0];
+
+    const CancelledBySubscriberCallbackAttemptCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][54]['ct:strValue'][0];
+
+    const CancelledByChiefCallbackAttemptCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][55]['ct:strValue'][0];
+
+    const CancelledOnScheduleCallbackAttemptCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][56]['ct:strValue'][0];
+
+    const ServedCallbackCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][57]['ct:strValue'][0];
+
+    const NoAnswerCallbackCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][58]['ct:strValue'][0];
+
+    const BusyCallbackCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][59]['ct:strValue'][0];
+
+    const FailedCallbackCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][60]['ct:strValue'][0];
+
+    const CancelledBySubscriberCallbackCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][61]['ct:strValue'][0];
+
+    const CancelledByChiefCallbackCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][62]['ct:strValue'][0];
+
+    const CancelledOnScheduleCallbackCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][63]['ct:strValue'][0];
+
+    const AgentHourCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][66]['ct:strValue'][0];
+
+    const CurrAgentCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][67]['ct:strValue'][0];
+
+    const ReadyAgentCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][68]['ct:strValue'][0];
+
+    const UnservicedCallCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][70]['ct:strValue'][0];
+
+    const UnservicedECS_Count =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][71]['ct:strValue'][0];
+
+    const MissedMoreN_CallCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][72]['ct:strValue'][0];
+
+    const MaxQueueUnservicedDuration =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][73]['ct:strValue'][0];
+
+    const SumDistributeIncomingCallCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][74]['ct:strValue'][0];
+
+    const SumDistributeIncomingMoreN_CallCount =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][75]['ct:strValue'][0];
+
+    const MaxQueueIncomingDispatchedDuration =
+    convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
+      'ct:PrCtGetStatisticTlvResp'
+    ][0]['ct:listStatistic'][0]['ct:TmCtStatisticTlv'][0]['ct:listValue'][0][
+      'ct:TmStatDataValueTlv'
+    ][76]['ct:strValue'][0];
+//comment
     const queueDispatchedCallCoun =
       convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
         'ct:PrCtGetStatisticTlvResp'
@@ -92,13 +485,95 @@ export const fetchStatisticByGroup = async () => {
         'ct:TmStatDataValueTlv'
       ][39]['ct:strValue'][0];
 
-    console.log(    acceptedCallCount,
-      presentedCallCount,
-      lostCallCount,
-      straggleCallCount,
-      averageTimeBeforeConnect,
-      averageCallDuration,
-      queueDispatchedCallCoun,);
+      
+
+      const messageStatistic = `
+      <b>Отчет по вызовам</b>
+      
+  <b>Параметр</b>                        <b>Значение</b>
+  ---------------------------------------
+  Кол-во поступивших вызовов      ${acceptedCallCount}
+  Кол-во предоставленных услуг    ${presentedCallCount}
+  Кол-во непредоставленных услуг  ${FailedCallCount}
+  Кол-во переадресаций            ${TransferCount}
+  Кол-во переадресаций на службу  ${TransferToServiceCount}
+  Кол-во переадресаций на группу  ${TransferToGroupCount}
+  Кол-во переадресаций на оператора ${TransferToAgentCount}
+  Кол-во переадресаций на внешний номер ТфОП ${TransferToOutCount}
+  Кол-во консультаций             ${ConsultCount}
+  Кол-во исходящих вызовов        ${ExternalCallCount}
+  Кол-во неудачных исходящих вызовов ${FailedExternalCallCount}
+  Кол-во переадресованных вызовов ${IndirectedCallCount}
+  ???-?? ????????? ?? IVR         ${ReturnedFromIVRCallCount}
+  Кол-во неактуальных вызовов     ${NotActualCallCount}
+  Кол-во потерянных вызовов       ${lostCallCount}
+  Кол-во ошибочных вызовов       ${MistakedCallCount}
+  Кол-во вызовов, отбившихся на подсказке приветствия ${straggleCallCount}
+  Кол-во вызовов, распределившихся на операторов ${DistributeWithQueueCallCount}
+  Кол-во вызовов, распределившихся на операторов без ожидания в очереди ${DistributeWithoutQueueCallCount}
+  Кол-во неответов                ${NoAnswerCount}
+  Кол-во неответов (попытка распределения без ожидания в очереди) ${NoAnswerCountWithoutQueue}
+  
+  <b>Времена</b>
+  Среднее время распределения вызова ${AverageTimeBeforeConnect}
+  Среднее время разговора        ${AverageCallDuration}
+  Среднее время ожидания         ${AverageQueueDuration}
+  Среднее время ожидания распределившихся вызовов ${AverageQueueDispatchedDuration}
+  Среднее время ожидания отбившися вызовов ${AverageQueueFailedDuration}
+  Максимальное время ожидания    ${MaxQueueDuration}
+  
+  <b>Очередь</b>
+  Кол-во вызовов, поступивших в очередь ${QueuedCallCount}
+  Кол-во вызовов, у кот. Время ожидания в очереди > 15сек ${LongQueueCallCount}
+  Кол-во вызовов со временем ожидания больше порога ${QueueThresholdCallCount}
+  Кол-во респределившихся вызовов со временем ожидания больше порога ${QueueThresholdDispatchedCallCount}
+  Кол-во вызовов со временем ожидания больше порога ${QueueDispatchedCallCount}
+  Кол-во вызовов, распределившихся из очереди ${QueuedFailedCallCount}
+  Кол-во вызовов, отбившихся из очереди ${ThresholdBrakeCallCount}
+  Кол-во вызовов в очереди больше порога ${QueueDeletedCallCount}
+  Кол-во вызовов, удалённых из очереди ${CurrentQueueSize}
+  Текущий размер очереди         ${MaxQueueSize}
+  
+  <b>Обратные вызовы</b>
+  Кол-во созданных заказных ОВ    ${CreatedCallbackCount}
+  Кол-во созданных овто ОВ        ${CreatedAutoCallbackCount}
+  Кол-во созданных в очереди заказных ОВ ${QueueCreatedCallbackCount}
+  Кол-во созданных в очереди авто ОВ ${QueueCreatedAutoCallbackCount}
+  Кол-во неуспешных попыток ОВ    ${FailedCallbackAttemptCount}
+  Кол-во успешных попыток ОВ      ${ServedCallbackAttemptCount}
+  Кол-во попыток ОВ, абонент не ответил ${NoAnswerCallbackAttemptCount}
+  Кол-во попыток ОВ, абонент занят ${BusyCallbackAttemptCount}
+  Кол-во попыток ОВ, отмененных абонентом ${CancelledBySubscriberCallbackAttemptCount}
+  Кол-во попыток ОВ, отмененных старшим оператором ${CancelledByChiefCallbackAttemptCount}
+  Кол-во попыток ОВ, удаленных по расписанию ${CancelledOnScheduleCallbackAttemptCount}
+  Кол-во обслуженных ОВ           ${ServedCallbackCount}
+  Кол-во ОВ, абонент не ответил   ${NoAnswerCallbackCount}
+  Кол-во ОВ, абонент занят        ${BusyCallbackCount}
+  Кол-во необслуженных ОВ         ${FailedCallbackCount}
+  Кол-во ОВ, отмененных абонентом ${CancelledBySubscriberCallbackCount}
+  Кол-во ОВ, отмененных старшим оператором ${CancelledByChiefCallbackCount}
+  Кол-во ОВ, удаленных по расписанию ${CancelledOnScheduleCallbackCount}
+  
+  Кол-во зарегистрированных операторов (в агенточасах) ${AgentHourCount}
+  Кол-во зарегистрированных операторов на начало часа ${CurrAgentCount}
+  Кол-во операторов, готовых к обслуживанию ${ReadyAgentCount}
+  
+  Кол-во необслуженных вызовов    ${UnservicedCallCount}
+  Кол-во необслуженных отбившихся вызовов ${UnservicedECS_Count}
+  Кол-во необсл.ожид.>N вызовов   ${MissedMoreN_CallCount}
+  Макс.время ожидания необсл. вызовов ${MaxQueueUnservicedDuration}
+  Кол-во обслуженных вызовов      ${SumDistributeIncomingCallCount}
+  Кол-во обсл.ожид.>N вызовов     ${SumDistributeIncomingMoreN_CallCount}
+  Макс.время ожидания обсл. Вызовов ${MaxQueueIncomingDispatchedDuration}
+      `;
+      
+      const a = await bot.telegram.sendMessage(
+          `${process.env.TG_Group_ID}` ,
+          messageStatistic,
+          { parse_mode: 'HTML' }
+      );
+      
+  
 
     dataGroupEntity.save({
       group_id: e.group_id,
@@ -106,8 +581,8 @@ export const fetchStatisticByGroup = async () => {
       presentedCallCount,
       lostCallCount,
       straggleCallCount,
-      averageTimeBeforeConnect,
-      averageCallDuration,
+      averageTimeBeforeConnect : AverageTimeBeforeConnect,
+      averageCallDuration : AverageCallDuration,
       queueDispatchedCallCoun,
     });
   });

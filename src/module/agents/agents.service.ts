@@ -582,8 +582,7 @@ export class AgentsService {
       .catch(() => {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
       });
-      console.log(findBlockAgents, '111111');
-      
+
 
     let AllbanTimeOperators: agentslockEntity[] = [];
 
@@ -596,6 +595,7 @@ export class AgentsService {
         AllbanTimeOperators.push(e);
       }
     }
+
 
     const agents = await this.findAllOperatorBanInfoDateAgentLock(
       AllbanTimeOperators,
@@ -623,8 +623,7 @@ export class AgentsService {
 
     const totalCount = AllOperators.length;
 
-    // console.log(allAgents.length, );
-    
+ 
 
     return {
       agents: paginatedAgents,
@@ -975,7 +974,7 @@ export class AgentsService {
       }).catch((e) => {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
       });
-
+      
       let allworkTime = 0;
       let work_time = '09-18';
       if (findAgent) {
