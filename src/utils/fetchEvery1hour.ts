@@ -568,7 +568,7 @@ export const fetchStatisticByGroup = async (bot:Telegraf<Context<Update>>) => {
       `;
       
       const a = await bot.telegram.sendMessage(
-          `${process.env.TG_Group_ID}` ,
+          `${process.env.TG_Group_ID_STATISTIK}` ,
           messageStatistic,
           { parse_mode: 'HTML' }
       );
