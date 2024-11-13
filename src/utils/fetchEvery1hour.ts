@@ -652,7 +652,7 @@ export const operatorsWhere = async (
           agents[i]['ct:agentStateDuration'][0] > 600
         ) {
           if (!findAgent.IsSupervazer) {
-            console.log(findAgent, 'f');
+            // console.log(findAgent, 'f');
 
             const findAgentlock = await agentslockEntity.find({
               where: {

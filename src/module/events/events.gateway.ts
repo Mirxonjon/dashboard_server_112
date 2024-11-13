@@ -57,7 +57,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       'test',
       { parse_mode: 'HTML' }
   );
-  console.log(a);
+  // console.log(a);
   
     // fetchStatisticByGroup(this.bot);
 

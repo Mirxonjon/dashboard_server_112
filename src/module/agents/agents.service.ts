@@ -2012,9 +2012,10 @@ export class AgentsService {
     }
   }
 
-  @Cron('*/10 * * * * *')
+  @Cron(CronExpression.EVERY_MINUTE)
   async actionOperator() {
-    // console.log('ok');
+console.log('actionOperator');
+
     let actionOperators: any = await this.#_cache.get('activeOperators');
     let arrSentExcelFormat = [];
     // console.log(actionOperators);
