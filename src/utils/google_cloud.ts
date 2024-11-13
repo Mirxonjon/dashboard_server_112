@@ -69,6 +69,79 @@ export const readSheets = async (
 //       console.error('error sheet', error);  // Logs errors.
 //   }
 // }
+export const readSheet255 = async (rangeCut: string) => {
+  console.log(process.env.SHEETID);
+
+  const sheets = google.sheets({ version: 'v4', auth });
+  const spreadsheetId = process.env.SHEETID;
+  const range = 'grafik!A1:AH'; // Specifies the range to read.
+
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range,
+    });
+    const rows = response.data.values; // Extracts the rows from the response.
+    return rows; // Returns the rows.
+  } catch (error) {
+    console.error('error', error); // Logs errors.
+  }
+};
+
+export const writeToSheet = async (
+  sheetID: string,
+  list: string,
+  rangeCut: string,
+  values: any[][],
+) => {
+  const sheets = google.sheets({ version: 'v4', auth }); // Creates a Sheets API client instance.
+  const spreadsheetId = sheetID;
+  const range = `${list}!${rangeCut}`; // The range in the sheet where data will be written.
+  const valueInputOption = 'USER_ENTERED'; // How input data should be interpreted.
+
+  const requestBody = { values }; // The data to be written.
+
+  try {
+    const res = await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range,
+      valueInputOption,
+      requestBody,
+    });
+    return res.data; // Returns the response from the Sheets API.
+  } catch (error) {
+    console.error('error', error); // Logs errors.
+  }
+};
+
+export const insertRowsAtTop = async (sheetID, list, numRows = 10) => {
+  const sheets = google.sheets({ version: 'v4', auth }); // Create Sheets API client instance.
+  const spreadsheetId = sheetID; // process.env.SHEETID;
+
+  try {
+    const res = await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            insertDimension: {
+              range: {
+                sheetId: list, // The ID of the sheet where rows will be inserted.
+                dimension: 'ROWS',
+                startIndex: 0,
+                endIndex: numRows, // Insert 'numRows' rows starting from the top.
+              },
+              inheritFromBefore: false,
+            },
+          },
+        ],
+      },
+    });
+    return res.data; // Returns the response from the Sheets API.
+  } catch (error) {
+    console.error('Error inserting rows:', error);
+  }
+};
 
 export const readSheet = async (rangeCut: string) => {
   const sheets = google.sheets({ version: 'v4', auth });

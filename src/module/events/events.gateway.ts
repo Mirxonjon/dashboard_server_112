@@ -47,19 +47,26 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
 
-  // @Cron(CronExpression.EVERY_10_SECONDS)
-  @Cron('59 18 * * *')
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  // @Cron('59 18 * * *')
  async fetchdata1() {
 
     // console.log('okkkk' , new Date());
-    fetchStatisticByGroup(this.bot);
+    const a = await this.bot.telegram.sendMessage(
+      `${process.env.TG_Chanel_ID}` ,
+      'test',
+      { parse_mode: 'HTML' }
+  );
+  console.log(a);
+  
+    // fetchStatisticByGroup(this.bot);
 
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleAgentsAtTheMomentAddCash() {
     const operatorsWhereatThemoment: any = await Promise.all(
-      await operatorsWhere(this.bot),
+      await operatorsWhere(this.bot, this.#_cache),
     );
 
     // console.log(operatorsWhereatThemoment , 'okkkk');

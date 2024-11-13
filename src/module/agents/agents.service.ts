@@ -1,8 +1,9 @@
 import { GraphMonthEntity } from './../../entities/graphMoth';
 import * as dotenv from 'dotenv';
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Inject } from '@nestjs/common';
 import { agentsDataStateEntity } from 'src/entities/agentsDataState.entity';
 import { agentslockEntity } from 'src/entities/agentslock.entity';
+import { Cache } from 'cache-manager';
 import { GroupsEntity } from 'src/entities/group.entity';
 import { ServicesEntity } from 'src/entities/service.entity';
 import {
@@ -12,7 +13,7 @@ import {
   splitTextIntoChunks,
   subtractTime,
 } from 'src/utils/converters';
-import { readSheets } from 'src/utils/google_cloud';
+import { insertRowsAtTop, readSheets, writeToSheet } from 'src/utils/google_cloud';
 import { Telegraf } from 'telegraf';
 import { Between, Like, Not } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -26,14 +27,17 @@ import {
   ControlAgentGraphSmena,
   findDidNotComeToWorkOnTime,
 } from 'src/utils/agentControlfunctions';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 dotenv.config();
 
 @Injectable()
 export class AgentsService {
+  readonly #_cache: Cache;
   public bot: Telegraf;
-  constructor() {
+  constructor(@Inject(CACHE_MANAGER) cache: Cache) {
     this.bot = new Telegraf(process.env.BOT_TOKEN);
+    this.#_cache = cache;
   }
 
   async findAllAgents() {
@@ -396,7 +400,7 @@ export class AgentsService {
       // console.log('okkk', type_ban, results);
       allResults = results;
       allTotals = total;
-    } else  {
+    } else {
       const [results, total] = await agentControlGraphEntity
         .findAndCount({
           where: [
@@ -464,7 +468,6 @@ export class AgentsService {
       allResults = results;
       allTotals = total;
     }
-
 
     const agentData = await agentControlGraphEntity
       .find({
@@ -558,23 +561,23 @@ export class AgentsService {
 
     const findBlockAgents = await agentslockEntity
       .find({
-        where: [{
-          login: login == 'null' ? null : +login,
-          lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        {
-          login: login == 'null' ? null : +login,
-          firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        {
-          login: login == 'null' ? null : +login,
-          secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        
-      ],
+        where: [
+          {
+            login: login == 'null' ? null : +login,
+            lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+          {
+            login: login == 'null' ? null : +login,
+            firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+          {
+            login: login == 'null' ? null : +login,
+            secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+        ],
         order: {
           create_data: 'desc',
         },
@@ -582,7 +585,6 @@ export class AgentsService {
       .catch(() => {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
       });
-
 
     let AllbanTimeOperators: agentslockEntity[] = [];
 
@@ -595,7 +597,6 @@ export class AgentsService {
         AllbanTimeOperators.push(e);
       }
     }
-
 
     const agents = await this.findAllOperatorBanInfoDateAgentLock(
       AllbanTimeOperators,
@@ -622,8 +623,6 @@ export class AgentsService {
     const paginatedAgents = AllOperators.slice(startIndex, endIndex);
 
     const totalCount = AllOperators.length;
-
- 
 
     return {
       agents: paginatedAgents,
@@ -826,23 +825,23 @@ export class AgentsService {
 
     const findAgents = await agentslockEntity
       .find({
-        where: [{
-          login: login == 'null' ? null : +login,
-          lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        {
-          login: login == 'null' ? null : +login,
-          firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        {
-          login: login == 'null' ? null : +login,
-          secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        
-      ],
+        where: [
+          {
+            login: login == 'null' ? null : +login,
+            lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+          {
+            login: login == 'null' ? null : +login,
+            firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+          {
+            login: login == 'null' ? null : +login,
+            secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+        ],
         order: {
           create_data: 'desc',
         },
@@ -894,22 +893,23 @@ export class AgentsService {
 
     const findAgents = await agentslockEntity
       .find({
-        where:[{
-          login: login == 'null' ? null : +login,
-          lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        {
-          login: login == 'null' ? null : +login,
-          firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        },
-        {
-          login: login == 'null' ? null : +login,
-          secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
-          create_data: Between(fromDateFormatted, untilDateFormatted),
-        }, 
-      ],
+        where: [
+          {
+            login: login == 'null' ? null : +login,
+            lastName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+          {
+            login: login == 'null' ? null : +login,
+            firstName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+          {
+            login: login == 'null' ? null : +login,
+            secondName: fullname == 'null' ? null : Like(`%${fullname}%`),
+            create_data: Between(fromDateFormatted, untilDateFormatted),
+          },
+        ],
         order: {
           create_data: 'desc',
         },
@@ -974,7 +974,7 @@ export class AgentsService {
       }).catch((e) => {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
       });
-      
+
       let allworkTime = 0;
       let work_time = '09-18';
       if (findAgent) {
@@ -1019,10 +1019,7 @@ export class AgentsService {
             where: {
               id_login: e.login.toString(),
               TimeWorkIsDone: false,
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
@@ -1034,10 +1031,7 @@ export class AgentsService {
             where: {
               id_login: e.login.toString(),
               ComeToWorkOnTime: false,
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
@@ -1049,25 +1043,19 @@ export class AgentsService {
             where: {
               id_login: e.login.toString(),
               LeftAfterWork: false,
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
-          const CountNb = await agentControlGraphEntity
+        const CountNb = await agentControlGraphEntity
           .count({
             where: {
               id_login: e.login.toString(),
-              LastLoginTime: 'not login' ,
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              LastLoginTime: 'not login',
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
@@ -1079,10 +1067,7 @@ export class AgentsService {
             where: {
               id: e.id,
               banInfo: 'block',
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
@@ -1094,70 +1079,66 @@ export class AgentsService {
             where: {
               id: e.id,
               banInfo: 'time',
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
-          const CountcontrolGraphAll =await agentControlGraphEntity
-          .count({
-            where:[
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: Not(true),
-                      LeftAfterWork: Not(true),
-                      TimeWorkIsDone: Not(true),
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: true,
-                      LeftAfterWork: true,
-                      TimeWorkIsDone: Not(true),
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: true,
-                      LeftAfterWork: Not(true),
-                      TimeWorkIsDone: Not(true),
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: Not(true),
-                      LeftAfterWork: true,
-                      TimeWorkIsDone: Not(true),
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: Not(true),
-                      LeftAfterWork: Not(true),
-                      TimeWorkIsDone: true,
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: true,
-                      LeftAfterWork: Not(true),
-                      TimeWorkIsDone: true,
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: Not(true),
-                      LeftAfterWork: true,
-                      TimeWorkIsDone: true,
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                  ],
-          })
+        const CountcontrolGraphAll = await agentControlGraphEntity.count({
+          where: [
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: true,
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: true,
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: true,
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+          ],
+        });
 
         agents.push({
           agent_id: findAgent.agent_id,
@@ -1168,13 +1149,14 @@ export class AgentsService {
           name: findAgent.name,
           create_data: findAgent.create_data,
           allworkTime,
-          countAllbanInfo : CountcontrolGraphAll + CountAgentBlock + CountAgentBanTime,
+          countAllbanInfo:
+            CountcontrolGraphAll + CountAgentBlock + CountAgentBanTime,
           CountAgentсomeToWorkLate: CountAgentсomeToWorkLate,
           CountAgentLeftAfterWork,
           CountAgentBlock,
           CountAgentBanTime,
           CountAgentWorkedLess,
-          CountNb
+          CountNb,
         });
       }
     }
@@ -1259,10 +1241,7 @@ export class AgentsService {
             where: {
               id_login: e.id_login,
               TimeWorkIsDone: false,
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
@@ -1274,10 +1253,7 @@ export class AgentsService {
             where: {
               id_login: e.id_login,
               ComeToWorkOnTime: false,
-              create_data :Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
@@ -1289,25 +1265,19 @@ export class AgentsService {
             where: {
               id_login: e.id_login,
               LeftAfterWork: false,
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
-          const CountNb = await agentControlGraphEntity
+        const CountNb = await agentControlGraphEntity
           .count({
             where: {
               id_login: e.id_login,
               LastLoginTime: 'not login',
-              create_data: Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
@@ -1319,10 +1289,7 @@ export class AgentsService {
             where: {
               id: e.id,
               banInfo: 'block',
-              create_data: Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
@@ -1334,70 +1301,66 @@ export class AgentsService {
             where: {
               id: e.id,
               banInfo: 'time',
-              create_data : Between(
-                fromDateFormatted,
-                untilDateFormatted,
-              ),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
             },
           })
           .catch(() => {
             throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
           });
 
-          const CountcontrolGraphAll =await agentControlGraphEntity
-          .count({
-            where:[
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: Not(true),
-                      LeftAfterWork: Not(true),
-                      TimeWorkIsDone: Not(true),
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: true,
-                      LeftAfterWork: true,
-                      TimeWorkIsDone: Not(true),
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: true,
-                      LeftAfterWork: Not(true),
-                      TimeWorkIsDone: Not(true),
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: Not(true),
-                      LeftAfterWork: true,
-                      TimeWorkIsDone: Not(true),
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: Not(true),
-                      LeftAfterWork: Not(true),
-                      TimeWorkIsDone: true,
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: true,
-                      LeftAfterWork: Not(true),
-                      TimeWorkIsDone: true,
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                    {
-                      id_login: findAgent.id_login,
-                      ComeToWorkOnTime: Not(true),
-                      LeftAfterWork: true,
-                      TimeWorkIsDone: true,
-                      create_data: Between(fromDateFormatted, untilDateFormatted),
-                    },
-                  ],
-          })
+        const CountcontrolGraphAll = await agentControlGraphEntity.count({
+          where: [
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: true,
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: true,
+              TimeWorkIsDone: Not(true),
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: true,
+              LeftAfterWork: Not(true),
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+            {
+              id_login: findAgent.id_login,
+              ComeToWorkOnTime: Not(true),
+              LeftAfterWork: true,
+              TimeWorkIsDone: true,
+              create_data: Between(fromDateFormatted, untilDateFormatted),
+            },
+          ],
+        });
 
         agents.push({
           agent_id: findAgent.agent_id,
@@ -1408,13 +1371,14 @@ export class AgentsService {
           create_data: findAgent.create_data,
           work_time,
           allworkTime,
-          countAllbanInfo : CountcontrolGraphAll + CountAgentBlock + CountAgentBanTime ,
+          countAllbanInfo:
+            CountcontrolGraphAll + CountAgentBlock + CountAgentBanTime,
           CountAgentсomeToWorkLate: CountAgentсomeToWorkLate,
           CountAgentLeftAfterWork,
           CountAgentBlock,
           CountAgentBanTime,
           CountAgentWorkedLess,
-          CountNb
+          CountNb,
         });
       }
     }
@@ -2048,5 +2012,50 @@ export class AgentsService {
     }
   }
 
-  
+  @Cron('*/10 * * * * *')
+  async actionOperator() {
+    // console.log('ok');
+    let actionOperators: any = await this.#_cache.get('activeOperators');
+    let arrSentExcelFormat = [];
+    // console.log(actionOperators);
+
+    //     {
+    //   id: '7462',
+    //   ip_adress: '192.168.61.10',
+    //   login: '180',
+    //   firstName: 'Feruza',
+    //   lastName: 'Zikirova',
+    //   secondName: 'Raxmonberdiyevna',
+    //   lockCause: '-1',
+    //   agentState: '3',
+    //   agentStateDuration: '322'
+    // }
+    if (actionOperators) {
+      for (let e of actionOperators) {
+        arrSentExcelFormat.push([
+          e.id,
+          e.login,
+          `${e.lastName} ${e.firstName} ${e.secondName}`,
+          e.lockCause,
+          e.agentState,
+          e.agentStateDuration,
+          e.ip_adress,
+        ]);
+      }
+      await insertRowsAtTop(
+        process.env.SHEETIDSECOND,
+        '828318522',
+        arrSentExcelFormat?.length,
+      );
+      await writeToSheet(
+        process.env.SHEETIDSECOND,
+        '229-Перерыв/Обед',
+        'A1',
+        arrSentExcelFormat,
+      );
+    }
+
+    return true;
+  }
+  // }
 }

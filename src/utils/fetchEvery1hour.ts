@@ -9,6 +9,7 @@ import { agentslockEntity } from 'src/entities/agentslock.entity';
 import { Telegraf, Context } from 'telegraf';
 import { Update } from 'telegraf/typings/core/types/typegram';
 import * as dotenv from 'dotenv';
+import { Cache } from 'cache-manager';
 
 export const fetchStatisticByGroup = async (bot:Telegraf<Context<Update>>) => {
   const findGroups = await GroupsEntity.find();
@@ -567,7 +568,7 @@ export const fetchStatisticByGroup = async (bot:Telegraf<Context<Update>>) => {
   Макс.время ожидания обсл. Вызовов ${MaxQueueIncomingDispatchedDuration}
       `;
       
-      const a = await bot.telegram.sendMessage(
+     await bot.telegram.sendMessage(
           `${process.env.TG_Group_ID_STATISTIK}` ,
           messageStatistic,
           { parse_mode: 'HTML' }
@@ -590,6 +591,7 @@ export const fetchStatisticByGroup = async (bot:Telegraf<Context<Update>>) => {
 
 export const operatorsWhere = async (
   bot: Telegraf<Context<Update>>,
+  cache: Cache,
 ): Promise<any[]> => {
   let arrBlockAgents = [];
   const sampleHeaders = {
@@ -622,22 +624,35 @@ export const operatorsWhere = async (
     convertedData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0][
       'ct:PrCtGroupContent2Resp'
     ][0]['ct:agents'][0]['ct:TmCtAgentInGroup2'];
-
+  let arrActiveOperators = [];
   for (let i = 0; i < agents.length; i++) {
     if (agents[i]['ct:ip'][0]) {
-      const arr = [ '0' ,'2', '3', '4', '6','8' ,'11'];
+// console.log(agents[i]['ct:ip'][0]);
+
+      arrActiveOperators.push({
+        id: agents[i]['ct:id'][0],
+        ip_adress: agents[i]['ct:ip'][0],
+        login: agents[i]['ct:login'][0],
+        firstName: agents[i]['ct:firstName'][0],
+        lastName: agents[i]['ct:lastName'][0],
+        secondName: agents[i]['ct:secondName'][0],
+        lockCause: agents[i]['ct:lockCause'][0],
+        agentState: agents[i]['ct:agentState'][0],
+        agentStateDuration: agents[i]['ct:agentStateDuration'][0],
+      });
+
+      const arr = ['0', '2', '3', '4', '6', '8', '11'];
       const findAgent = await agentsDataStateEntity.findOneBy({
         id: agents[i]['ct:id'][0],
       });
       // console.log(findAgent , 'f');
       if (arr.includes(agents[i]['ct:lockCause'][0]) && findAgent) {
-
         if (
           findAgent.lockCause == agents[i]['ct:lockCause'][0] &&
           agents[i]['ct:agentStateDuration'][0] > 600
         ) {
           if (!findAgent.IsSupervazer) {
-      console.log(findAgent , 'f');
+            console.log(findAgent, 'f');
 
             const findAgentlock = await agentslockEntity.find({
               where: {
@@ -658,7 +673,7 @@ export const operatorsWhere = async (
                 ` ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} превысил 10-минутный перерыв`,
               );
               // console.log(findAgent , 'f');
-              
+
               await agentsDataStateEntity.update(
                 { id: findAgent.id },
                 {
@@ -688,7 +703,7 @@ export const operatorsWhere = async (
               );
             }
 
-            if (findAgentlock[0] && !findAgent.addToblockTable) { 
+            if (findAgentlock[0] && !findAgent.addToblockTable) {
               await agentslockEntity.update(
                 { agent_id: findAgentlock[0].agent_id },
                 {
@@ -741,9 +756,7 @@ export const operatorsWhere = async (
           findAgent.lockCause != agents[i]['ct:lockCause'][0] &&
           arr.includes(`${findAgent.lockCause}`)
         ) {
-
-      // console.log(findAgent , 'wwwf');
-
+          // console.log(findAgent , 'wwwf');
 
           if (!findAgent.IsSupervazer) {
             const findAgentlock = await agentslockEntity.find({
@@ -810,16 +823,16 @@ export const operatorsWhere = async (
                 banInfo: 'block',
               });
               const message = {
-                '0' : '🔒',
+                '0': '🔒',
                 '2': '🚬',
                 '3': '👑',
                 '4': '💻',
                 '6': '🏃',
                 '7': '🧑‍🎓',
                 '8': '📤',
-                '11': '📝'
+                '11': '📝',
               };
-      const arr = [ '0' ,'2', '3', '4', '6','8' ,'11'];
+              const arr = ['0', '2', '3', '4', '6', '8', '11'];
 
               await bot.telegram.sendMessage(
                 process.env.TG_Chanel_ID,
@@ -902,6 +915,6 @@ export const operatorsWhere = async (
       }
     }
   }
-
+  await cache.set('activeOperators', arrActiveOperators, 3600000);
   return arrBlockAgents;
 };
