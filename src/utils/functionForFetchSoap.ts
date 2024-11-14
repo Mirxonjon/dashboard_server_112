@@ -27,12 +27,7 @@ export const fetchGetagentStatistic = async (id: number) => {
     xml,
     // { headers: sampleHeaders },
   );
-  //   console.log("So'rovdan keyin 5 soniya kutamiz...");
-  //   await waitFor5Seconds();
 
-  // Keyingi kodlar bu joyga yoziladi, 5 soniya o'tib ketdi
-
-  //   console.log("5 soniya o'tib ketdi. Keyingi qadamlar...");
 
   const convertedData = await parseStringPromise(data);
 

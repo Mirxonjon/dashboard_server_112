@@ -1390,9 +1390,9 @@ export class AgentsService {
   }
 
   async writeNewGraph() {
-    const cutRanges = 'A1:AJ500';
+    const cutRanges = 'A1:AK500';
     const sheetId: string = '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow';
-    const rangeName: string = 'grafik';
+    const rangeName: string = '229';
     const sheets = await readSheets(sheetId, rangeName, cutRanges);
 
     for (const e of sheets) {
