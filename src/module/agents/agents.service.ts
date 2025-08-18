@@ -13,7 +13,11 @@ import {
   splitTextIntoChunks,
   subtractTime,
 } from 'src/utils/converters';
-import { insertRowsAtTop, readSheets, writeToSheet } from 'src/utils/google_cloud';
+import {
+  insertRowsAtTop,
+  readSheets,
+  writeToSheet,
+} from 'src/utils/google_cloud';
 import { Telegraf } from 'telegraf';
 import { Between, Like, Not } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -24,10 +28,12 @@ import { agentControlGraphEntity } from 'src/entities/agentsControlGrafigh.entit
 import { fetchGetagentStatistic } from 'src/utils/functionForFetchSoap';
 import {
   ControlAgentGraph,
+  ControlAgentGraphSendSheet,
   ControlAgentGraphSmena,
   findDidNotComeToWorkOnTime,
 } from 'src/utils/agentControlfunctions';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { ComputersEntity } from 'src/entities/computer.entity';
 
 dotenv.config();
 
@@ -1389,170 +1395,316 @@ export class AgentsService {
     return await this.writeNewGraph();
   }
 
-  async writeNewGraph() {
-    const cutRanges = 'A1:AK500';
-    const sheetId: string = '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow';
-    const rangeName: string = '229';
-    const sheets = await readSheets(sheetId, rangeName, cutRanges);
+  @Cron('0 0 20 * * *')
+  async writeNewGraphlastMonth() {
+    const now = new Date();
+    const lastDay = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+    ).getDate();
 
-    for (const e of sheets) {
-      if (e[1] == '112' && e[4] != '-') {
-        const findAgent: AgentDateEntity = await AgentDateEntity.findOne({
-          where: {
-            id_login: e[4],
-          },
-          relations: {
-            months: {
-              days: true,
+    if (now.getDate() === lastDay) {
+      const cutRanges = 'A2:AK500';
+
+      // const sheetId: string = '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow';
+      const rangeName: string = '229';
+      const sheets = await readSheets(
+        '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow',
+        rangeName,
+        cutRanges,
+      );
+
+      for (const e of sheets) {
+        if (e[1] == '229' || e[1] == '255' || e[1] == '1009') {
+          const findAgent: AgentDateEntity = await AgentDateEntity.findOne({
+            where: {
+              id_login: e[4],
             },
-          },
-        });
-
-        if (findAgent) {
-          const updateAgent = await AgentDateEntity.createQueryBuilder()
-            .update(AgentDateEntity)
-            .set({ service_name: e[1], id_login: e[4], name: e[3], id: e[5] })
-            .where('agent_id = :id', { id: findAgent.agent_id })
-            .returning(['agent_id'])
-            .execute();
-
-          if (updateAgent) {
-            const firstday = e[6].split('/')[0];
-
-            const findMonth = await GraphMonthEntity.findOne({
-              where: {
-                year: firstday.split('.')[2],
-                month_number: firstday.split('.')[1],
-                agent_id: updateAgent.raw[0]?.agent_id,
+            relations: {
+              months: {
+                days: true,
               },
-            });
+            },
+          });
 
-            if (findMonth) {
-              const mothData = await returnMothData(firstday);
+          if (findAgent) {
+            const updateAgent = await AgentDateEntity.createQueryBuilder()
+              .update(AgentDateEntity)
+              .set({ service_name: e[1], id_login: e[4], name: e[3], id: e[5] })
+              .where('agent_id = :id', { id: findAgent.agent_id })
+              .returning(['agent_id'])
+              .execute();
 
-              const updateMoth = await GraphMonthEntity.createQueryBuilder()
-                .update(GraphMonthEntity)
-                .set({
+            if (updateAgent) {
+              const firstday = e[6].split('/')[0];
+
+              const findMonth = await GraphMonthEntity.findOne({
+                where: {
                   year: firstday.split('.')[2],
-                  month_number: +firstday.split('.')[1],
-                  month_name: mothData.name,
-                  month_days_count: mothData.days,
-                  agent_id: updateAgent.raw[0].agent_id,
-                })
-                .where('id = :id', { id: findMonth.id })
-                .returning(['id'])
-                .execute()
-                .catch((e) => console.log(e));
+                  month_number: firstday.split('.')[1],
+                  agent_id: updateAgent.raw[0]?.agent_id,
+                },
+              });
 
-              if (updateMoth) {
-                for (let i = 6; i < e.length; i++) {
-                  const dataDay = e[i].split('/');
-                  // console.log(dataDay);
+              if (findMonth) {
+                const mothData = await returnMothData(firstday);
 
-                  const typesGraph = [
-                    'DAM',
-                    'Н',
-                    'К',
-                    'Б',
-                    'О',
-                    'Р',
-                    'П',
-                    'А',
-                    'У',
-                  ];
-                  const typesTime = [
-                    '10-19',
-                    '07-16',
-                    '08-17',
-                    '09-18',
-                    '11-20',
-                    '13-22',
-                    '15-24',
-                    '17-02',
-                    '07-15',
-                    '08-16',
-                    '09-17',
-                    '08-18',
-                    '18-08',
-                    '14-23',
-                    '18-09',
-                    '09-18',
-                  ];
-                  const typesSmen = ['08-20', '20-08'];
-                  // console.log(updateMoth,'updateMothdan');
-                  // console.log('okkk' ,dataDay[0] , findMonth?.id , findAgent.agent_id);
+                const updateMoth = await GraphMonthEntity.createQueryBuilder()
+                  .update(GraphMonthEntity)
+                  .set({
+                    year: firstday.split('.')[2],
+                    month_number: +firstday.split('.')[1],
+                    month_name: mothData.name,
+                    month_days_count: mothData.days,
+                    agent_id: updateAgent.raw[0].agent_id,
+                  })
+                  .where('id = :id', { id: findMonth.id })
+                  .returning(['id'])
+                  .execute()
+                  .catch((e) => console.log(e));
 
-                  const findDay = await GraphDaysEntity.findOne({
-                    where: {
-                      the_date: dataDay[0],
-                      month_id: {
-                        id: updateMoth?.raw[0]?.id, // `month_id` uchun to'g'ridan-to'g'ri qiymatni ko'rsating ,
-                        // agent_id : {
-                        //   agent_id: updateAgent.raw[0].agent_id
-                        // }
-                        //  agent_id: findAgent.agent_id as any
+                if (updateMoth) {
+                  for (let i = 6; i < e.length; i++) {
+                    const dataDay = e[i].split('/');
+                    // console.log(dataDay);
+
+                    const typesGraph = [
+                      'DAM',
+                      'Н',
+                      'К',
+                      'Б',
+                      'О',
+                      'Р',
+                      'П',
+                      'А',
+                      'У',
+                    ];
+                    const typesTime = [
+                      '10-19',
+                      '07-16',
+                      '08-17',
+                      '09-18',
+                      '11-20',
+                      '13-22',
+                      '15-24',
+                      '17-02',
+                      '07-15',
+                      '08-16',
+                      '09-17',
+                      '08-18',
+                      '18-08',
+                      '14-23',
+                      '18-09',
+                      '09-18',
+                    ];
+                    const typesSmen = ['08-20', '20-08'];
+                    // console.log(updateMoth,'updateMothdan');
+                    // console.log('okkk' ,dataDay[0] , findMonth?.id , findAgent.agent_id);
+
+                    const findDay = await GraphDaysEntity.findOne({
+                      where: {
+                        the_date: dataDay[0],
+                        month_id: {
+                          id: updateMoth?.raw[0]?.id, // `month_id` uchun to'g'ridan-to'g'ri qiymatni ko'rsating ,
+                          // agent_id : {
+                          //   agent_id: updateAgent.raw[0].agent_id
+                          // }
+                          //  agent_id: findAgent.agent_id as any
+                        },
                       },
-                    },
-                    relations: {
-                      month_id: {
-                        agent_id: true,
+                      relations: {
+                        month_id: {
+                          agent_id: true,
+                        },
                       },
-                    },
-                  }).catch((e) => console.log(e));
-                  let formatDate = new Date(
-                    +dataDay[0]?.split('.')[2],
-                    +dataDay[0]?.split('.')[1] - 1,
-                    +dataDay[0]?.split('.')[0],
-                  );
+                    }).catch((e) => console.log(e));
+                    let formatDate = new Date(
+                      +dataDay[0]?.split('.')[2],
+                      +dataDay[0]?.split('.')[1] - 1,
+                      +dataDay[0]?.split('.')[0],
+                    );
 
-                  if (findDay) {
-                    if (typesGraph.includes(dataDay[1])) {
-                      await GraphDaysEntity.createQueryBuilder()
-                        .update(GraphDaysEntity)
-                        .set({
-                          at_work: dataDay[1],
-                          work_day: +dataDay[0].split('.')[0],
-                          work_time: null,
-                          the_date: dataDay[0],
-                          the_day_Format_Date: formatDate,
-                          work_type: dataDay[1],
-                          week_day_name: dataDay[2],
-                        })
-                        .where('id = :id', { id: findDay.id })
-                        .returning(['id'])
-                        .execute();
-                    } else if (typesTime.includes(dataDay[1])) {
-                      await GraphDaysEntity.createQueryBuilder()
-                        .update(GraphDaysEntity)
-                        .set({
-                          at_work: 'W',
-                          work_day: +dataDay[0].split('.')[0],
-                          work_time: dataDay[1],
-                          the_date: dataDay[0],
-                          the_day_Format_Date: formatDate,
-                          work_type: 'day',
-                          week_day_name: dataDay[2],
-                        })
-                        .where('id = :id', { id: findDay.id })
-                        .returning(['id'])
-                        .execute();
-                    } else if (typesSmen.includes(dataDay[1])) {
-                      await GraphDaysEntity.createQueryBuilder()
-                        .update(GraphDaysEntity)
-                        .set({
-                          at_work: 'W',
-                          work_day: +dataDay[0].split('.')[0],
-                          work_time: dataDay[1],
-                          the_date: dataDay[0],
-                          the_day_Format_Date: formatDate,
-                          work_type: 'smen',
-                          week_day_name: dataDay[2],
-                        })
-                        .where('id = :id', { id: findDay.id })
-                        .returning(['id'])
-                        .execute();
+                    if (findDay) {
+                      if (typesGraph.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .update(GraphDaysEntity)
+                          .set({
+                            at_work: dataDay[1],
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: null,
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: dataDay[1],
+                            week_day_name: dataDay[2],
+                          })
+                          .where('id = :id', { id: findDay.id })
+                          .returning(['id'])
+                          .execute();
+                      } else if (typesTime.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .update(GraphDaysEntity)
+                          .set({
+                            at_work: 'W',
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: dataDay[1],
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: 'day',
+                            week_day_name: dataDay[2],
+                          })
+                          .where('id = :id', { id: findDay.id })
+                          .returning(['id'])
+                          .execute();
+                      } else if (typesSmen.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .update(GraphDaysEntity)
+                          .set({
+                            at_work: 'W',
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: dataDay[1],
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: 'smen',
+                            week_day_name: dataDay[2],
+                          })
+                          .where('id = :id', { id: findDay.id })
+                          .returning(['id'])
+                          .execute();
+                      }
+                    } else {
+                      if (typesGraph.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .insert()
+                          .into(GraphDaysEntity)
+                          .values({
+                            at_work: dataDay[1],
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: null,
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: dataDay[1],
+                            week_day_name: dataDay[2],
+                            month_id: findMonth[0].id,
+                          })
+                          .returning(['id'])
+                          .execute()
+                          .catch((e) => {
+                            throw new HttpException(
+                              'Bad Request',
+                              HttpStatus.BAD_REQUEST,
+                            );
+                          });
+                      } else if (typesTime.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .insert()
+                          .into(GraphDaysEntity)
+                          .values({
+                            at_work: 'W',
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: dataDay[1],
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: 'day',
+                            week_day_name: dataDay[2],
+                            month_id: findMonth[0].id,
+                          })
+                          .returning(['id'])
+                          .execute()
+                          .catch((e) => {
+                            throw new HttpException(
+                              'Bad Request',
+                              HttpStatus.BAD_REQUEST,
+                            );
+                          });
+                      } else if (typesSmen.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .insert()
+                          .into(GraphDaysEntity)
+                          .values({
+                            at_work: 'W',
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: dataDay[1],
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: 'smen',
+                            week_day_name: dataDay[2],
+                            month_id: findMonth[0].id,
+                          })
+                          .returning(['id'])
+                          .execute()
+                          .catch((e) => {
+                            throw new HttpException(
+                              'Bad Request',
+                              HttpStatus.BAD_REQUEST,
+                            );
+                          });
+                      }
                     }
-                  } else {
+                  }
+                }
+              } else {
+                const mothData = await returnMothData(firstday);
+
+                const newMoth = await GraphMonthEntity.createQueryBuilder()
+                  .insert()
+                  .into(GraphMonthEntity)
+                  .values({
+                    year: firstday.split('.')[2],
+                    month_number: +firstday.split('.')[1],
+                    month_name: mothData?.name,
+                    month_days_count: mothData?.days,
+                    agent_id: updateAgent.raw[0].agent_id,
+                  })
+                  .returning(['id'])
+                  .execute()
+                  .catch((e) => {
+                    throw new HttpException(
+                      'Bad Request',
+                      HttpStatus.BAD_REQUEST,
+                    );
+                  });
+
+                if (newMoth) {
+                  for (let i = 6; i < e.length; i++) {
+                    const dataDay = e[i].split('/');
+                    let formatDate = new Date(
+                      +dataDay[0]?.split('.')[2],
+                      +dataDay[0]?.split('.')[1] - 1,
+                      +dataDay[0]?.split('.')[0],
+                    );
+
+                    const typesGraph = [
+                      'DAM',
+                      'Н',
+                      'К',
+                      'Б',
+                      'О',
+                      'Р',
+                      'П',
+                      'А',
+                      'У',
+                    ];
+                    const typesTime = [
+                      '10-19',
+                      '07-16',
+                      '08-17',
+                      '09-18',
+                      '11-20',
+                      '13-22',
+                      '15-24',
+                      '17-02',
+                      '07-15',
+                      '08-16',
+                      '09-17',
+                      '08-18',
+                      '18-08',
+                      '14-23',
+                      '18-09',
+                      '09-18',
+                    ];
+                    const typesSmen = ['08-20', '20-08'];
+
                     if (typesGraph.includes(dataDay[1])) {
                       await GraphDaysEntity.createQueryBuilder()
                         .insert()
@@ -1565,7 +1717,7 @@ export class AgentsService {
                           the_day_Format_Date: formatDate,
                           work_type: dataDay[1],
                           week_day_name: dataDay[2],
-                          month_id: findMonth[0].id,
+                          month_id: newMoth.raw[0].id,
                         })
                         .returning(['id'])
                         .execute()
@@ -1587,7 +1739,7 @@ export class AgentsService {
                           the_day_Format_Date: formatDate,
                           work_type: 'day',
                           week_day_name: dataDay[2],
-                          month_id: findMonth[0].id,
+                          month_id: newMoth.raw[0].id,
                         })
                         .returning(['id'])
                         .execute()
@@ -1609,7 +1761,7 @@ export class AgentsService {
                           the_day_Format_Date: formatDate,
                           work_type: 'smen',
                           week_day_name: dataDay[2],
-                          month_id: findMonth[0].id,
+                          month_id: newMoth.raw[0].id,
                         })
                         .returning(['id'])
                         .execute()
@@ -1623,7 +1775,28 @@ export class AgentsService {
                   }
                 }
               }
-            } else {
+            }
+          } else {
+            // agent else
+
+            const newAgent = await AgentDateEntity.createQueryBuilder()
+              .insert()
+              .into(AgentDateEntity)
+              .values({
+                service_name: e[1],
+                name: e[3],
+                id_login: e[4],
+                id: e[5],
+              })
+              .returning(['agent_id'])
+              .execute()
+              .catch((e) => {
+                throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+              });
+
+            if (newAgent) {
+              const firstday = e[6].split('/')[0];
+
               const mothData = await returnMothData(firstday);
               const newMoth = await GraphMonthEntity.createQueryBuilder()
                 .insert()
@@ -1633,7 +1806,7 @@ export class AgentsService {
                   month_number: +firstday.split('.')[1],
                   month_name: mothData.name,
                   month_days_count: mothData.days,
-                  agent_id: updateAgent.raw[0].agent_id,
+                  agent_id: newAgent.raw[0].agent_id,
                 })
                 .returning(['id'])
                 .execute()
@@ -1683,6 +1856,8 @@ export class AgentsService {
                     '09-18',
                   ];
                   const typesSmen = ['08-20', '20-08'];
+                  // console.log(dataDay[1] , dataDay , firstday );
+                  //
 
                   if (typesGraph.includes(dataDay[1])) {
                     await GraphDaysEntity.createQueryBuilder()
@@ -1755,266 +1930,846 @@ export class AgentsService {
               }
             }
           }
-        } else {
-          // agent else
-          const newAgent = await AgentDateEntity.createQueryBuilder()
-            .insert()
-            .into(AgentDateEntity)
-            .values({
-              service_name: e[1],
-              name: e[3],
+        }
+      }
+      return true;
+    }
+  }
+
+  async writeNewGraph() {
+    try {
+      // await this.deleteOperators();
+      const cutRanges = 'A2:AK500';
+      console.log('okkkkk');
+
+      const rangeName: string = '229';
+      const sheets = await readSheets(
+        '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow',
+        rangeName,
+        cutRanges,
+      );
+      console.log(sheets);
+
+      for (const e of sheets) {
+        if (e[1] == '229' || e[1] == '255' || e[1] == '1009') {
+          const findAgent: AgentDateEntity = await AgentDateEntity.findOne({
+            where: {
               id_login: e[4],
-              id: e[5],
-            })
-            .returning(['agent_id'])
-            .execute()
-            .catch((e) => {
-              throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-            });
+            },
+            relations: {
+              months: {
+                days: true,
+              },
+            },
+          });
 
-          if (newAgent) {
-            const firstday = e[6].split('/')[0];
+          if (findAgent) {
+            const updateAgent = await AgentDateEntity.createQueryBuilder()
+              .update(AgentDateEntity)
+              .set({ service_name: e[1], id_login: e[4], name: e[3], id: e[5] })
+              .where('agent_id = :id', { id: findAgent.agent_id })
+              .returning(['agent_id'])
+              .execute();
 
-            const mothData = await returnMothData(firstday);
-            const newMoth = await GraphMonthEntity.createQueryBuilder()
+            if (updateAgent) {
+              const firstday = e[6].split('/')[0];
+
+              const findMonth = await GraphMonthEntity.findOne({
+                where: {
+                  year: firstday.split('.')[2],
+                  month_number: firstday.split('.')[1],
+                  agent_id: updateAgent.raw[0]?.agent_id,
+                },
+              });
+
+              if (findMonth) {
+                const mothData = await returnMothData(firstday);
+                const updateMoth = await GraphMonthEntity.createQueryBuilder()
+                  .update(GraphMonthEntity)
+                  .set({
+                    year: firstday.split('.')[2],
+                    month_number: +firstday.split('.')[1],
+                    month_name: mothData.name,
+                    month_days_count: mothData.days,
+                    agent_id: updateAgent.raw[0].agent_id,
+                  })
+                  .where('id = :id', { id: findMonth.id })
+                  .returning(['id'])
+                  .execute()
+                  .catch((e) => console.log(e));
+
+                if (updateMoth) {
+                  for (let i = 6; i < e.length; i++) {
+                    const dataDay = e[i].split('/');
+
+                    const typesGraph = [
+                      'DAM',
+                      'Н',
+                      'К',
+                      'Б',
+                      'О',
+                      'Р',
+                      'П',
+                      'А',
+                      'У',
+                    ];
+                    const typesTime = [
+                      '06-15',
+                      '10-19',
+                      '07-16',
+                      '08-17',
+                      '09-18',
+                      '11-20',
+                      '13-22',
+                      '15-24',
+                      '17-02',
+                      '07-15',
+                      '08-16',
+                      '09-17',
+                      '08-18',
+                      '18-08',
+                      '14-23',
+                      '18-09',
+                      '09-18',
+                    ];
+                    const typesSmen = ['08-20', '20-08'];
+
+                    const findDay = await GraphDaysEntity.findOne({
+                      where: {
+                        the_date: dataDay[0],
+                        month_id: {
+                          id: updateMoth?.raw[0]?.id, // `month_id` uchun to'g'ridan-to'g'ri qiymatni ko'rsating ,
+                          // agent_id : {
+                          //   agent_id: updateAgent.raw[0].agent_id
+                          // }
+                          //  agent_id: findAgent.agent_id as any
+                        },
+                      },
+                      relations: {
+                        month_id: {
+                          agent_id: true,
+                        },
+                      },
+                    }).catch((e) => console.log(e));
+                    let formatDate = new Date(
+                      +dataDay[0]?.split('.')[2],
+                      +dataDay[0]?.split('.')[1] - 1,
+                      +dataDay[0]?.split('.')[0],
+                    );
+
+                    if (findDay) {
+                      if (typesGraph.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .update(GraphDaysEntity)
+                          .set({
+                            at_work: dataDay[1],
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: null,
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: dataDay[1],
+                            week_day_name: dataDay[2],
+                          })
+                          .where('id = :id', { id: findDay.id })
+                          .returning(['id'])
+                          .execute();
+                      } else if (typesTime.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .update(GraphDaysEntity)
+                          .set({
+                            at_work: 'W',
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: dataDay[1],
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: 'day',
+                            week_day_name: dataDay[2],
+                          })
+                          .where('id = :id', { id: findDay.id })
+                          .returning(['id'])
+                          .execute();
+                      } else if (typesSmen.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .update(GraphDaysEntity)
+                          .set({
+                            at_work: 'W',
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: dataDay[1],
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: 'smen',
+                            week_day_name: dataDay[2],
+                          })
+                          .where('id = :id', { id: findDay.id })
+                          .returning(['id'])
+                          .execute();
+                      }
+                    } else {
+                      if (typesGraph.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .insert()
+                          .into(GraphDaysEntity)
+                          .values({
+                            at_work: dataDay[1],
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: null,
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: dataDay[1],
+                            week_day_name: dataDay[2],
+                            month_id: {
+                              id: findMonth?.id,
+                            },
+                          })
+                          .returning(['id'])
+                          .execute()
+                          .catch((e) => {
+                            throw new HttpException(
+                              'Bad Request',
+                              HttpStatus.BAD_REQUEST,
+                            );
+                          });
+                      } else if (typesTime.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .insert()
+                          .into(GraphDaysEntity)
+                          .values({
+                            at_work: 'W',
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: dataDay[1],
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: 'day',
+                            week_day_name: dataDay[2],
+                            month_id: {
+                              id: findMonth?.id,
+                            },
+                          })
+                          .returning(['id'])
+                          .execute()
+                          .catch((e) => {
+                            throw new HttpException(
+                              'Bad Request',
+                              HttpStatus.BAD_REQUEST,
+                            );
+                          });
+                      } else if (typesSmen.includes(dataDay[1])) {
+                        await GraphDaysEntity.createQueryBuilder()
+                          .insert()
+                          .into(GraphDaysEntity)
+                          .values({
+                            at_work: 'W',
+                            work_day: +dataDay[0].split('.')[0],
+                            work_time: dataDay[1],
+                            the_date: dataDay[0],
+                            the_day_Format_Date: formatDate,
+                            work_type: 'smen',
+                            week_day_name: dataDay[2],
+                            month_id: {
+                              id: findMonth?.id,
+                            },
+                          })
+                          .returning(['id'])
+                          .execute()
+                          .catch((e) => {
+                            throw new HttpException(
+                              'Bad Request',
+                              HttpStatus.BAD_REQUEST,
+                            );
+                          });
+                      }
+                    }
+                  }
+                }
+              } else {
+                const mothData = await returnMothData(firstday);
+
+                const newMoth = await GraphMonthEntity.createQueryBuilder()
+                  .insert()
+                  .into(GraphMonthEntity)
+                  .values({
+                    year: firstday.split('.')[2],
+                    month_number: +firstday.split('.')[1],
+                    month_name: mothData?.name,
+                    month_days_count: mothData?.days,
+                    agent_id: updateAgent.raw[0].agent_id,
+                  })
+                  .returning(['id'])
+                  .execute()
+                  .catch((e) => {
+                    throw new HttpException(
+                      'Bad Request',
+                      HttpStatus.BAD_REQUEST,
+                    );
+                  });
+
+                if (newMoth) {
+                  for (let i = 6; i < e.length; i++) {
+                    const dataDay = e[i].split('/');
+                    let formatDate = new Date(
+                      +dataDay[0]?.split('.')[2],
+                      +dataDay[0]?.split('.')[1] - 1,
+                      +dataDay[0]?.split('.')[0],
+                    );
+
+                    const typesGraph = [
+                      'DAM',
+                      'Н',
+                      'К',
+                      'Б',
+                      'О',
+                      'Р',
+                      'П',
+                      'А',
+                      'У',
+                    ];
+                    const typesTime = [
+                      '06-15',
+                      '10-19',
+                      '07-16',
+                      '08-17',
+                      '09-18',
+                      '11-20',
+                      '13-22',
+                      '15-24',
+                      '17-02',
+                      '07-15',
+                      '08-16',
+                      '09-17',
+                      '08-18',
+                      '18-08',
+                      '14-23',
+                      '18-09',
+                      '09-18',
+                    ];
+                    const typesSmen = ['08-20', '20-08'];
+
+                    if (typesGraph.includes(dataDay[1])) {
+                      await GraphDaysEntity.createQueryBuilder()
+                        .insert()
+                        .into(GraphDaysEntity)
+                        .values({
+                          at_work: dataDay[1],
+                          work_day: +dataDay[0].split('.')[0],
+                          work_time: null,
+                          the_date: dataDay[0],
+                          the_day_Format_Date: formatDate,
+                          work_type: dataDay[1],
+                          week_day_name: dataDay[2],
+                          month_id: newMoth.raw[0].id,
+                        })
+                        .returning(['id'])
+                        .execute()
+                        .catch((e) => {
+                          throw new HttpException(
+                            'Bad Request',
+                            HttpStatus.BAD_REQUEST,
+                          );
+                        });
+                    } else if (typesTime.includes(dataDay[1])) {
+                      await GraphDaysEntity.createQueryBuilder()
+                        .insert()
+                        .into(GraphDaysEntity)
+                        .values({
+                          at_work: 'W',
+                          work_day: +dataDay[0].split('.')[0],
+                          work_time: dataDay[1],
+                          the_date: dataDay[0],
+                          the_day_Format_Date: formatDate,
+                          work_type: 'day',
+                          week_day_name: dataDay[2],
+                          month_id: newMoth.raw[0].id,
+                        })
+                        .returning(['id'])
+                        .execute()
+                        .catch((e) => {
+                          throw new HttpException(
+                            'Bad Request',
+                            HttpStatus.BAD_REQUEST,
+                          );
+                        });
+                    } else if (typesSmen.includes(dataDay[1])) {
+                      await GraphDaysEntity.createQueryBuilder()
+                        .insert()
+                        .into(GraphDaysEntity)
+                        .values({
+                          at_work: 'W',
+                          work_day: +dataDay[0].split('.')[0],
+                          work_time: dataDay[1],
+                          the_date: dataDay[0],
+                          the_day_Format_Date: formatDate,
+                          work_type: 'smen',
+                          week_day_name: dataDay[2],
+                          month_id: newMoth.raw[0].id,
+                        })
+                        .returning(['id'])
+                        .execute()
+                        .catch((e) => {
+                          throw new HttpException(
+                            'Bad Request',
+                            HttpStatus.BAD_REQUEST,
+                          );
+                        });
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            // agent else
+
+            const newAgent = await AgentDateEntity.createQueryBuilder()
               .insert()
-              .into(GraphMonthEntity)
+              .into(AgentDateEntity)
               .values({
-                year: firstday.split('.')[2],
-                month_number: +firstday.split('.')[1],
-                month_name: mothData.name,
-                month_days_count: mothData.days,
-                agent_id: newAgent.raw[0].agent_id,
+                service_name: e[1],
+                name: e[3],
+                id_login: e[4],
+                id: e[5],
               })
-              .returning(['id'])
+              .returning(['agent_id'])
               .execute()
               .catch((e) => {
                 throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
               });
 
-            if (newMoth) {
-              for (let i = 6; i < e.length; i++) {
-                const dataDay = e[i].split('/');
-                let formatDate = new Date(
-                  +dataDay[0]?.split('.')[2],
-                  +dataDay[0]?.split('.')[1] - 1,
-                  +dataDay[0]?.split('.')[0],
-                );
+            if (newAgent) {
+              const firstday = e[6].split('/')[0];
 
-                const typesGraph = [
-                  'DAM',
-                  'Н',
-                  'К',
-                  'Б',
-                  'О',
-                  'Р',
-                  'П',
-                  'А',
-                  'У',
-                ];
-                const typesTime = [
-                  '10-19',
-                  '07-16',
-                  '08-17',
-                  '09-18',
-                  '11-20',
-                  '13-22',
-                  '15-24',
-                  '17-02',
-                  '07-15',
-                  '08-16',
-                  '09-17',
-                  '08-18',
-                  '18-08',
-                  '14-23',
-                  '18-09',
-                  '09-18',
-                ];
-                const typesSmen = ['08-20', '20-08'];
-                // console.log(dataDay[1] , dataDay , firstday );
-                //
+              const mothData = await returnMothData(firstday);
+              const newMoth = await GraphMonthEntity.createQueryBuilder()
+                .insert()
+                .into(GraphMonthEntity)
+                .values({
+                  year: firstday.split('.')[2],
+                  month_number: +firstday.split('.')[1],
+                  month_name: mothData.name,
+                  month_days_count: mothData.days,
+                  agent_id: newAgent.raw[0].agent_id,
+                })
+                .returning(['id'])
+                .execute()
+                .catch((e) => {
+                  throw new HttpException(
+                    'Bad Request',
+                    HttpStatus.BAD_REQUEST,
+                  );
+                });
 
-                if (typesGraph.includes(dataDay[1])) {
-                  await GraphDaysEntity.createQueryBuilder()
-                    .insert()
-                    .into(GraphDaysEntity)
-                    .values({
-                      at_work: dataDay[1],
-                      work_day: +dataDay[0].split('.')[0],
-                      work_time: null,
-                      the_date: dataDay[0],
-                      the_day_Format_Date: formatDate,
-                      work_type: dataDay[1],
-                      week_day_name: dataDay[2],
-                      month_id: newMoth.raw[0].id,
-                    })
-                    .returning(['id'])
-                    .execute()
-                    .catch((e) => {
-                      throw new HttpException(
-                        'Bad Request',
-                        HttpStatus.BAD_REQUEST,
-                      );
-                    });
-                } else if (typesTime.includes(dataDay[1])) {
-                  await GraphDaysEntity.createQueryBuilder()
-                    .insert()
-                    .into(GraphDaysEntity)
-                    .values({
-                      at_work: 'W',
-                      work_day: +dataDay[0].split('.')[0],
-                      work_time: dataDay[1],
-                      the_date: dataDay[0],
-                      the_day_Format_Date: formatDate,
-                      work_type: 'day',
-                      week_day_name: dataDay[2],
-                      month_id: newMoth.raw[0].id,
-                    })
-                    .returning(['id'])
-                    .execute()
-                    .catch((e) => {
-                      throw new HttpException(
-                        'Bad Request',
-                        HttpStatus.BAD_REQUEST,
-                      );
-                    });
-                } else if (typesSmen.includes(dataDay[1])) {
-                  await GraphDaysEntity.createQueryBuilder()
-                    .insert()
-                    .into(GraphDaysEntity)
-                    .values({
-                      at_work: 'W',
-                      work_day: +dataDay[0].split('.')[0],
-                      work_time: dataDay[1],
-                      the_date: dataDay[0],
-                      the_day_Format_Date: formatDate,
-                      work_type: 'smen',
-                      week_day_name: dataDay[2],
-                      month_id: newMoth.raw[0].id,
-                    })
-                    .returning(['id'])
-                    .execute()
-                    .catch((e) => {
-                      throw new HttpException(
-                        'Bad Request',
-                        HttpStatus.BAD_REQUEST,
-                      );
-                    });
+              if (newMoth) {
+                for (let i = 6; i < e.length; i++) {
+                  const dataDay = e[i].split('/');
+                  let formatDate = new Date(
+                    +dataDay[0]?.split('.')[2],
+                    +dataDay[0]?.split('.')[1] - 1,
+                    +dataDay[0]?.split('.')[0],
+                  );
+
+                  const typesGraph = [
+                    'DAM',
+                    'Н',
+                    'К',
+                    'Б',
+                    'О',
+                    'Р',
+                    'П',
+                    'А',
+                    'У',
+                  ];
+                  const typesTime = [
+                    '06-15',
+                    '10-19',
+                    '07-16',
+                    '08-17',
+                    '09-18',
+                    '11-20',
+                    '13-22',
+                    '15-24',
+                    '17-02',
+                    '07-15',
+                    '08-16',
+                    '09-17',
+                    '08-18',
+                    '18-08',
+                    '14-23',
+                    '18-09',
+                    '09-18',
+                  ];
+                  const typesSmen = ['08-20', '20-08'];
+                  // console.log(dataDay[1] , dataDay , firstday );
+                  //
+
+                  if (typesGraph.includes(dataDay[1])) {
+                    await GraphDaysEntity.createQueryBuilder()
+                      .insert()
+                      .into(GraphDaysEntity)
+                      .values({
+                        at_work: dataDay[1],
+                        work_day: +dataDay[0].split('.')[0],
+                        work_time: null,
+                        the_date: dataDay[0],
+                        the_day_Format_Date: formatDate,
+                        work_type: dataDay[1],
+                        week_day_name: dataDay[2],
+                        month_id: newMoth.raw[0].id,
+                      })
+                      .returning(['id'])
+                      .execute()
+                      .catch((e) => {
+                        throw new HttpException(
+                          'Bad Request',
+                          HttpStatus.BAD_REQUEST,
+                        );
+                      });
+                  } else if (typesTime.includes(dataDay[1])) {
+                    await GraphDaysEntity.createQueryBuilder()
+                      .insert()
+                      .into(GraphDaysEntity)
+                      .values({
+                        at_work: 'W',
+                        work_day: +dataDay[0].split('.')[0],
+                        work_time: dataDay[1],
+                        the_date: dataDay[0],
+                        the_day_Format_Date: formatDate,
+                        work_type: 'day',
+                        week_day_name: dataDay[2],
+                        month_id: newMoth.raw[0].id,
+                      })
+                      .returning(['id'])
+                      .execute()
+                      .catch((e) => {
+                        throw new HttpException(
+                          'Bad Request',
+                          HttpStatus.BAD_REQUEST,
+                        );
+                      });
+                  } else if (typesSmen.includes(dataDay[1])) {
+                    await GraphDaysEntity.createQueryBuilder()
+                      .insert()
+                      .into(GraphDaysEntity)
+                      .values({
+                        at_work: 'W',
+                        work_day: +dataDay[0].split('.')[0],
+                        work_time: dataDay[1],
+                        the_date: dataDay[0],
+                        the_day_Format_Date: formatDate,
+                        work_type: 'smen',
+                        week_day_name: dataDay[2],
+                        month_id: newMoth.raw[0].id,
+                      })
+                      .returning(['id'])
+                      .execute()
+                      .catch((e) => {
+                        throw new HttpException(
+                          'Bad Request',
+                          HttpStatus.BAD_REQUEST,
+                        );
+                      });
+                  }
                 }
               }
             }
           }
         }
       }
-    }
-    return true;
-  }
-
-  @Cron('0 */25 * * * *')
-  async controlOperator() {
-    const atDate = new Date();
-
-    const theCurrentHour = atDate.getHours();
-    //  console.log(theCurrentHour);
-
-    // console.log(convertDate(atDate));
-    if (
-      (6 <= theCurrentHour && theCurrentHour <= 8) ||
-      (15 <= theCurrentHour && theCurrentHour <= 17)
-    ) {
-      // console.log('if 1');
-
-      const as = await ControlAgentGraph('07-16', theCurrentHour);
-      const a = Promise.all(as);
-    }
-
-    if (
-      (7 <= theCurrentHour && theCurrentHour <= 9) ||
-      (16 <= theCurrentHour && theCurrentHour <= 18)
-    ) {
-      // console.log('if 2');
-
-      // await ControlAgentGraph('08-17', theCurrentHour)
-      const as = await ControlAgentGraph('08-17', theCurrentHour);
-      const a = Promise.all(as);
-    }
-
-    if (
-      (8 <= theCurrentHour && theCurrentHour <= 10) ||
-      (17 <= theCurrentHour && theCurrentHour <= 19)
-    ) {
-      // await ControlAgentGraph('09-18', theCurrentHour)
-      // console.log('if 3');
-
-      const as = await ControlAgentGraph('09-18', theCurrentHour);
-      const a = Promise.all(as);
-    }
-
-    if (
-      (10 <= theCurrentHour && theCurrentHour <= 12) ||
-      (19 <= theCurrentHour && theCurrentHour <= 21)
-    ) {
-      // console.log('if 4');
-
-      await ControlAgentGraph('11-20', theCurrentHour);
-      const as = await ControlAgentGraph('11-20', theCurrentHour);
-      const a = Promise.all(as);
-    }
-
-    if (
-      (12 <= theCurrentHour && theCurrentHour <= 14) ||
-      (21 <= theCurrentHour && theCurrentHour <= 23)
-    ) {
-      // console.log('if 5');
-
-      // await ControlAgentGraph('13-22', theCurrentHour)
-      const as = await ControlAgentGraph('13-22', theCurrentHour);
-      const a = Promise.all(as);
-    }
-
-    if (
-      (14 <= theCurrentHour && theCurrentHour <= 16) ||
-      (23 <= theCurrentHour && theCurrentHour <= 24) ||
-      (0 <= theCurrentHour && theCurrentHour <= 1)
-    ) {
-      // console.log('if 6');
-
-      // await ControlAgentGraph('15-24', theCurrentHour)
-      const as = await ControlAgentGraph('15-24', theCurrentHour);
-      const a = Promise.all(as);
-    }
-
-    if (
-      (16 <= theCurrentHour && theCurrentHour <= 18) ||
-      (1 <= theCurrentHour && theCurrentHour <= 3)
-    ) {
-      // await ControlAgentGraph('17-02', theCurrentHour)
-      // console.log('if 7');
-
-      const as = await ControlAgentGraph('17-02', theCurrentHour);
-      const a = Promise.all(as);
-    }
-
-    if (
-      (7 <= theCurrentHour && theCurrentHour <= 9) ||
-      (19 <= theCurrentHour && theCurrentHour <= 21)
-    ) {
-      // console.log('if 8');
-
-      // await ControlAgentGraphSmena('8-20', theCurrentHour)
-      // await ControlAgentGraphSmena('20-8', theCurrentHour)
-
-      const as = await ControlAgentGraphSmena('8-20', theCurrentHour);
-      const a = Promise.all(as);
-
-      const as1 = await ControlAgentGraphSmena('20-8', theCurrentHour);
-      const a1 = Promise.all(as1);
+      return true;
+    } catch (error) {
+      console.log(error.message);
     }
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
+  async controlOperator() {
+    const atDate = new Date();
+
+    const theCurrentHour = atDate.getHours();
+    const theCurrentMinut = atDate.getMinutes();
+    const RequestTimeMinutes = [1, 4, 10, 30];
+    const uzbekistanTime = new Date(atDate.getTime() + 5 * 60 * 60 * 1000);
+    console.log(theCurrentHour, theCurrentMinut, atDate, uzbekistanTime);
+    const controlday = await ControlAgentGraphSendSheet(
+      '09-18',
+      theCurrentHour,
+      this.#_cache,
+    );
+
+    if (RequestTimeMinutes.includes(theCurrentMinut)) {
+      if (theCurrentHour == 7) {
+        const controlday = await ControlAgentGraphSendSheet(
+          '06-15',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataDay = Promise.all(controlday);
+      }
+      if (theCurrentHour == 7) {
+        const controlday = await ControlAgentGraphSendSheet(
+          '07-16',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataDay = Promise.all(controlday);
+      }
+      if (theCurrentHour == 8) {
+        const controlday = await ControlAgentGraphSendSheet(
+          '08-17',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataday = Promise.all(controlday);
+        const controlSmen = await ControlAgentGraphSendSheet(
+          '08-20',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataSmena = Promise.all(controlSmen);
+      }
+      if (theCurrentHour == 9) {
+        const controlday = await ControlAgentGraphSendSheet(
+          '09-18',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataDay = Promise.all(controlday);
+      }
+      if (theCurrentHour == 11) {
+        const controlday = await ControlAgentGraphSendSheet(
+          '11-20',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataDay = Promise.all(controlday);
+      }
+      if (theCurrentHour == 13) {
+        const controlday = await ControlAgentGraphSendSheet(
+          '13-22',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataDay = Promise.all(controlday);
+      }
+      if (theCurrentHour == 15) {
+        const controlday = await ControlAgentGraphSendSheet(
+          '15-24',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataDay = Promise.all(controlday);
+      }
+      if (theCurrentHour == 17) {
+        const controlday = await ControlAgentGraphSendSheet(
+          '17-02',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataDay = Promise.all(controlday);
+      }
+
+      if (theCurrentHour == 20) {
+        const controlSmen = await ControlAgentGraphSendSheet(
+          '20-08',
+          theCurrentHour,
+          this.#_cache,
+        );
+        const allDataSmena = Promise.all(controlSmen);
+      }
+    }
+
+    this.actionOperator();
+  }
+
+  @Cron('0 0 1 * *')
+  async writeIpAdress() {
+    const cutRanges = 'A2:D999';
+    // const sheetId: string = '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow';
+    const rangeName: string = 'IP 255';
+    const sheets = await readSheets(
+      '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow',
+      rangeName,
+      cutRanges,
+    );
+
+    for (const e of sheets) {
+      console.log(e);
+      if (e[0]) {
+        const findComp = await ComputersEntity.findOne({
+          where: {
+            sheet_id: e[0],
+          },
+        });
+
+        if (findComp) {
+          await ComputersEntity.update(findComp.id, {
+            sheet_id: e[0],
+            ip_Adress: e[1],
+            location: e[2],
+            atc: e[3],
+          });
+        } else {
+          await ComputersEntity.createQueryBuilder()
+            .insert()
+            .into(ComputersEntity)
+            .values({
+              sheet_id: e[0],
+              ip_Adress: e[1],
+              location: e[2],
+              atc: e[3],
+            })
+            .execute()
+            .catch((e) => {
+              throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+            });
+        }
+      }
+    }
+  }
+
+  async deleteOperator() {
+    try {
+      const cutRanges = 'A2:B500';
+
+      // const sheetId: string = '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow';
+      const rangeName: string = '229 DELETE';
+      const sheets = await readSheets(
+        '1BF7Z9CTKdL-RvBwzZTcB4gvOqoviX6fUwHIBmSlG_ow',
+        rangeName,
+        cutRanges,
+      );
+      console.log(sheets);
+
+      for (const e of sheets) {
+        if (e[1]) {
+          console.log(e[1]);
+          const findAgent: AgentDateEntity = await AgentDateEntity.findOne({
+            where: {
+              id: e[1],
+            },
+          });
+          if (findAgent) {
+            await AgentDateEntity.delete({ id: e[1] });
+          }
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  async deleteOperators() {
+    const findAgents: AgentDateEntity[] = await AgentDateEntity.find();
+    console.log(findAgents);
+
+    for (let e of findAgents) {
+      await AgentDateEntity.delete({ id: e.id });
+    }
+    return true;
+  }
+
+  // @Cron('0 */25 * * * *')
+  // async controlOperator() {
+  //   const atDate = new Date();
+
+  //   const theCurrentHour = atDate.getHours();
+  //   //  console.log(theCurrentHour);
+
+  //   // console.log(convertDate(atDate));
+  //   if (
+  //     (6 <= theCurrentHour && theCurrentHour <= 8) ||
+  //     (15 <= theCurrentHour && theCurrentHour <= 17)
+  //   ) {
+  //     // console.log('if 1');
+
+  //     const as = await ControlAgentGraph('07-16', theCurrentHour);
+  //     const a = Promise.all(as);
+  //   }
+
+  //   if (
+  //     (7 <= theCurrentHour && theCurrentHour <= 9) ||
+  //     (16 <= theCurrentHour && theCurrentHour <= 18)
+  //   ) {
+  //     // console.log('if 2');
+
+  //     // await ControlAgentGraph('08-17', theCurrentHour)
+  //     const as = await ControlAgentGraph('08-17', theCurrentHour);
+  //     const a = Promise.all(as);
+  //   }
+
+  //   if (
+  //     (8 <= theCurrentHour && theCurrentHour <= 10) ||
+  //     (17 <= theCurrentHour && theCurrentHour <= 19)
+  //   ) {
+  //     // await ControlAgentGraph('09-18', theCurrentHour)
+  //     // console.log('if 3');
+
+  //     const as = await ControlAgentGraph('09-18', theCurrentHour);
+  //     const a = Promise.all(as);
+  //   }
+
+  //   if (
+  //     (10 <= theCurrentHour && theCurrentHour <= 12) ||
+  //     (19 <= theCurrentHour && theCurrentHour <= 21)
+  //   ) {
+  //     // console.log('if 4');
+
+  //     await ControlAgentGraph('11-20', theCurrentHour);
+  //     const as = await ControlAgentGraph('11-20', theCurrentHour);
+  //     const a = Promise.all(as);
+  //   }
+
+  //   if (
+  //     (12 <= theCurrentHour && theCurrentHour <= 14) ||
+  //     (21 <= theCurrentHour && theCurrentHour <= 23)
+  //   ) {
+  //     // console.log('if 5');
+
+  //     // await ControlAgentGraph('13-22', theCurrentHour)
+  //     const as = await ControlAgentGraph('13-22', theCurrentHour);
+  //     const a = Promise.all(as);
+  //   }
+
+  //   if (
+  //     (14 <= theCurrentHour && theCurrentHour <= 16) ||
+  //     (23 <= theCurrentHour && theCurrentHour <= 24) ||
+  //     (0 <= theCurrentHour && theCurrentHour <= 1)
+  //   ) {
+  //     // console.log('if 6');
+
+  //     // await ControlAgentGraph('15-24', theCurrentHour)
+  //     const as = await ControlAgentGraph('15-24', theCurrentHour);
+  //     const a = Promise.all(as);
+  //   }
+
+  //   if (
+  //     (16 <= theCurrentHour && theCurrentHour <= 18) ||
+  //     (1 <= theCurrentHour && theCurrentHour <= 3)
+  //   ) {
+  //     // await ControlAgentGraph('17-02', theCurrentHour)
+  //     // console.log('if 7');
+
+  //     const as = await ControlAgentGraph('17-02', theCurrentHour);
+  //     const a = Promise.all(as);
+  //   }
+
+  //   if (
+  //     (7 <= theCurrentHour && theCurrentHour <= 9) ||
+  //     (19 <= theCurrentHour && theCurrentHour <= 21)
+  //   ) {
+  //     // console.log('if 8');
+
+  //     // await ControlAgentGraphSmena('8-20', theCurrentHour)
+  //     // await ControlAgentGraphSmena('20-8', theCurrentHour)
+
+  //     const as = await ControlAgentGraphSmena('8-20', theCurrentHour);
+  //     const a = Promise.all(as);
+
+  //     const as1 = await ControlAgentGraphSmena('20-8', theCurrentHour);
+  //     const a1 = Promise.all(as1);
+  //   }
+  // }
+
+  @Cron(CronExpression.EVERY_MINUTE)
   async actionOperator() {
-console.log('actionOperator');
+    console.log('actionOperator');
 
     let actionOperators: any = await this.#_cache.get('activeOperators');
     let arrSentExcelFormat = [];
@@ -2043,17 +2798,17 @@ console.log('actionOperator');
           e.ip_adress,
         ]);
       }
-      await insertRowsAtTop(
-        process.env.SHEETIDSECOND,
-        '828318522',
-        arrSentExcelFormat?.length,
-      );
-      await writeToSheet(
-        process.env.SHEETIDSECOND,
-        '229-Перерыв/Обед',
-        'A1',
-        arrSentExcelFormat,
-      );
+      // await insertRowsAtTop(
+      //   process.env.SHEETIDSECOND,
+      //   '828318522',
+      //   arrSentExcelFormat?.length,
+      // );
+      // await writeToSheet(
+      //   process.env.SHEETIDSECOND,
+      //   '229-Перерыв/Обед',
+      //   'A1',
+      //   arrSentExcelFormat,
+      // );
     }
 
     return true;

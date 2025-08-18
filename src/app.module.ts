@@ -18,9 +18,9 @@ dotenv.config();
     ConfigModule.forRoot(config),
     TypeOrmModule.forRoot(connectDb),
     ScheduleModule.forRoot(),
-    TelegrafModule.forRoot({
-      token: process.env.BOT_TOKEN,
-    }),
+    // TelegrafModule.forRoot({
+    //   token: process.env.BOT_TOKEN,
+    // }),
     EventModule,
     ServicesModule,
     AgentsModule,

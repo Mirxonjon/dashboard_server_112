@@ -31,7 +31,7 @@ export const fetchStatisticByGroup = async (bot:Telegraf<Context<Update>>) => {
    </soapenv:Envelope>`;
 
     const { data } = await axios.post(
-      'http://10.145.34.3:15358/ct?wsdl',
+      'http://10.145.32.3:15358/ct?wsdl',
       xml
     );
     const convertedData = await parseStringPromise(data);
@@ -568,11 +568,11 @@ export const fetchStatisticByGroup = async (bot:Telegraf<Context<Update>>) => {
   Макс.время ожидания обсл. Вызовов ${MaxQueueIncomingDispatchedDuration}
       `;
       
-     await bot.telegram.sendMessage(
-          `${process.env.TG_Group_ID_STATISTIK}` ,
-          messageStatistic,
-          { parse_mode: 'HTML' }
-      );
+    //  await bot.telegram.sendMessage(
+    //       `${process.env.TG_Group_ID_STATISTIK}` ,
+    //       messageStatistic,
+    //       { parse_mode: 'HTML' }
+    //   );
       
   
 
@@ -593,6 +593,8 @@ export const operatorsWhere = async (
   bot: Telegraf<Context<Update>>,
   cache: Cache,
 ): Promise<any[]> => {
+  console.log('okk');
+  
   let arrBlockAgents = [];
   const sampleHeaders = {
     'user-agent': 'sampleTest',
@@ -612,7 +614,7 @@ export const operatorsWhere = async (
     </soapenv:Body>
  </soapenv:Envelope>`;
 
-  const { data } = await axios.post('http://10.145.34.3:15358/ct?wsdl', xml, {
+  const { data } = await axios.post('http://10.145.32.3:15358/ct?wsdl', xml, {
     headers: sampleHeaders,
   });
   const convertedData = await parseStringPromise(data);
@@ -668,10 +670,10 @@ export const operatorsWhere = async (
               findAgent.TgMsgId == 'null' &&
               agents[i]['ct:agentStateDuration'][0] < 720
             ) {
-              data = await bot.telegram.sendMessage(
-                process.env.TG_Chanel_ID,
-                ` ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} превысил 10-минутный перерыв`,
-              );
+              // data = await bot.telegram.sendMessage(
+              //   process.env.TG_Chanel_ID,
+              //   ` ${findAgent.lastName} ${findAgent.firstName} ${findAgent.secondName} превысил 10-минутный перерыв`,
+              // );
               // console.log(findAgent , 'f');
 
               await agentsDataStateEntity.update(
@@ -685,15 +687,15 @@ export const operatorsWhere = async (
               agents[i]['ct:agentStateDuration'][0] - +findAgent.TgMsgSentTime >
               300
             ) {
-              data = await bot.telegram.sendMessage(
-                process.env.TG_Chanel_ID,
-                `Оператор ${findAgent.lastName} ${findAgent.firstName} ${
-                  findAgent.secondName
-                } всё ещё не включился на линию! ${formatSecondsToTime(
-                  agents[i]['ct:agentStateDuration'][0],
-                )}`,
-                { reply_to_message_id: +findAgent.TgMsgId },
-              );
+              // data = await bot.telegram.sendMessage(
+              //   process.env.TG_Chanel_ID,
+              //   `Оператор ${findAgent.lastName} ${findAgent.firstName} ${
+              //     findAgent.secondName
+              //   } всё ещё не включился на линию! ${formatSecondsToTime(
+              //     agents[i]['ct:agentStateDuration'][0],
+              //   )}`,
+              //   { reply_to_message_id: +findAgent.TgMsgId },
+              // );
               await agentsDataStateEntity.update(
                 { id: findAgent.id },
                 {
@@ -834,14 +836,14 @@ export const operatorsWhere = async (
               };
               const arr = ['0', '2', '3', '4', '6', '8', '11'];
 
-              await bot.telegram.sendMessage(
-                process.env.TG_Chanel_ID,
-                `   ${findAgent.lastName} ${findAgent.firstName} ${
-                  findAgent.secondName
-                } поменял статус ${message[findAgent.lockCause]} на ${
-                  message[agents[i]['ct:lockCause'][0]]
-                }`,
-              );
+              // await bot.telegram.sendMessage(
+              //   process.env.TG_Chanel_ID,
+              //   `   ${findAgent.lastName} ${findAgent.firstName} ${
+              //     findAgent.secondName
+              //   } поменял статус ${message[findAgent.lockCause]} на ${
+              //     message[agents[i]['ct:lockCause'][0]]
+              //   }`,
+              // );
             }
             await agentsDataStateEntity.update(
               { id: findAgent.id },

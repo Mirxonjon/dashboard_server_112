@@ -295,4 +295,48 @@ export class AgentsController {
   ) {
     return this.#_service.updateAgent(id, updateAgentdto);
   }
+
+  @Get('agents/controlgraph-or-update')
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse()
+  @ApiOkResponse()
+  @ApiOperation({
+    description:
+      'yangilar',
+  })
+  async updatecontrolgraph() {
+    return await this.#_service.controlOperator();
+  }
+
+  @Get('writeNewGraph-or-update')
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse()
+  @ApiOkResponse()
+  async writeNewGraph() {
+    return await this.#_service.writeNewGraph();
+  }
+
+  @Get('writeIp-adress-or-update')
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse()
+  @ApiOkResponse()
+  async writeIpAddress() {
+    return await this.#_service.writeIpAdress();
+  }
+
+  @Get('delete-operator')
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse()
+  @ApiOkResponse()
+  async deleteOperator() {
+    return await this.#_service.deleteOperator();
+  }
+
+  // @Get('delete-operators')
+  // @ApiBadRequestResponse()
+  // @ApiNotFoundResponse()
+  // @ApiOkResponse()
+  // async deleteOperators() {
+  //   return await this.#_service.deleteOperators();
+  // }
 }

@@ -11,44 +11,33 @@ import { AgentDateEntity } from './agentdate.entity';
 import { GraphDaysEntity } from './graphDays';
 
 @Entity()
-export class GraphMonthEntity extends BaseEntity {
+export class ComputersEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
     type: 'character varying',
+    nullable: true,
   })
-  year: string;
-
-  @Column({
-    type: 'int',
-    default: 0,
-  })
-  month_number: number;
+  sheet_id: string;
 
   @Column({
     type: 'character varying',
+    nullable: true,
   })
-  month_name: string;
+  ip_Adress: string;
 
   @Column({
     type: 'character varying',
+    nullable: true,
   })
-  month_days_count: string;
+  location: string;
 
-  // @Column({
-  //   type: 'character varying',
-  //   nullable: true,
-  // })
-  // login: string;
-
-  @ManyToOne(() => AgentDateEntity, (agent) => agent.months, {
-    onDelete: 'CASCADE',
+  @Column({
+    type: 'character varying',
+    nullable: true,
   })
-  agent_id: AgentDateEntity[];
-
-  @OneToMany(() => GraphDaysEntity, (group) => group.month_id)
-  days: GraphDaysEntity[];
+  atc: string;
 
   @CreateDateColumn({ name: 'created_at' })
   create_data: Date;

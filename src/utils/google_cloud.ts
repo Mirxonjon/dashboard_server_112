@@ -41,7 +41,8 @@ export const readSheets = async (
   const sheets = google.sheets({ version: 'v4', auth });
   const spreadsheetId = sheetId;
   const range = `${rangeName}!${rangeCut}`; // Specifies the range to read.
-
+  console.log(range, spreadsheetId);
+  
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -53,6 +54,8 @@ export const readSheets = async (
     console.error('error sheet', error); // Logs errors.
   }
 };
+
+
 
 // export const readSheets = async (rangeCut : string) => {
 //   const sheets = google.sheets({ version: 'v4', auth });
@@ -87,6 +90,8 @@ export const readSheet255 = async (rangeCut: string) => {
     console.error('error', error); // Logs errors.
   }
 };
+
+
 
 export const writeToSheet = async (
   sheetID: string,
@@ -159,3 +164,5 @@ export const readSheet = async (rangeCut: string) => {
     console.error('error', error); // Logs errors.
   }
 };
+
+

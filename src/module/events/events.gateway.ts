@@ -13,16 +13,14 @@ import { Cron, CronExpression, Interval } from '@nestjs/schedule';
 import { dataGroupEntity } from 'src/entities/dataGroup.entity';
 import { convertDate, splitTextIntoChunks } from 'src/utils/converters';
 import { agentslockEntity } from 'src/entities/agentslock.entity';
-import {
-  fetchStatisticByGroup,
-  operatorsWhere,
-} from 'src/utils/fetchEvery1hour';
+import { operatorsWhere } from 'src/utils/fetchEvery1hour';
 import { Telegraf } from 'telegraf';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Groupqueue } from 'src/utils/fetcheEvery5s';
 import { readSheets } from 'src/utils/google_cloud';
 import { findDidNotComeToWorkOnTime } from 'src/utils/agentControlfunctions';
+import * as WebSocket from 'ws';
 
 dotenv.config();
 
@@ -43,25 +41,44 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: Socket) {
     this.server.emit('connected', 'Connected to the server.');
-
   }
-
 
   // @Cron(CronExpression.EVERY_10_SECONDS)
-  @Cron('59 18 * * *')
- async fetchdata1() {
+  // // @Cron('59 18 * * *')
+  // async fetchdata1() {
+  //   console.log('ooooookkkkkkkk');
 
-    // console.log('okkkk' , new Date());
-  //   const a = await this.bot.telegram.sendMessage(
-  //     `${process.env.TG_Chanel_ID}` ,
-  //     'test',
-  //     { parse_mode: 'HTML' }
-  // );
-  // console.log(a);
-  
-    fetchStatisticByGroup(this.bot);
+  //   // let   listOfWorkerIds = [5121, 29895];
+  //   //   const socket = new WebSocket('192.168.42.93:8081/ct?wsdl');
+  //   //   socket.onopen = () => {
+  //   //     console.log('WebSocket connection established');
+  //   //     socket.send(
+  //   //       JSON.stringify({ action: 'start_streaming', ids: listOfWorkerIds }),
+  //   //     );
+  //   //   };
 
-  }
+  //   //   socket.onmessage = (event) => {
+  //   //     const data = JSON.parse(event.data);
+  //   //     console.log('Received data:', data);
+  //   //   };
+
+  //   //   socket.onclose = () => {
+  //   //     console.log('WebSocket connection closed');
+  //   //   };
+
+  //   //   socket.onerror = (error) => {
+  //   //     console.error('WebSocket error:', error);
+  //   //   };
+  //   // console.log('okkkk' , new Date());
+  //   //   const a = await this.bot.telegram.sendMessage(
+  //   //     `${process.env.TG_Chanel_ID}` ,
+  //   //     'test',
+  //   //     { parse_mode: 'HTML' }
+  //   // );
+  //   // console.log(a);
+
+  //   // fetchStatisticByGroup(this.bot);
+  // }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleAgentsAtTheMomentAddCash() {
@@ -70,7 +87,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     // console.log(operatorsWhereatThemoment , 'okkkk');
-    
+
     await this.#_cache.set('lockOperators', operatorsWhereatThemoment, 3600000);
   }
 

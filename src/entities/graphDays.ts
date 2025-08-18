@@ -48,8 +48,10 @@ export class GraphDaysEntity extends BaseEntity {
     type: 'character varying',
   })
   week_day_name: string;
-  @ManyToOne(() => GraphMonthEntity, (agent) => agent.days)
-  month_id: GraphMonthEntity[];
+  @ManyToOne(() => GraphMonthEntity, (agent) => agent.days, {
+    onDelete: 'CASCADE',
+  })
+  month_id: GraphMonthEntity;
 
   @CreateDateColumn({ name: 'created_at' })
   create_data: Date;
