@@ -25,17 +25,7 @@ export const ControlAgentGraphSendSheet = async (
   cache: Cache,
 ) => {
   try {
-    await insertRowsAtTop(
-      process.env.SHEETID,
-      '546173788',
-      12,
-    );
-    await writeToSheet(
-      process.env.SHEETID,
-      '229CHECK-IN/OUT',
-      'A1',
-      [['arrDataForSheet'] , ['ssss']],
-    );
+
 
     const typeWorkGraph = ['15-24', '17-02'];
     const typeWorkGraphSmen = ['08-20', '20-08'];
@@ -246,17 +236,17 @@ export const ControlAgentGraphSendSheet = async (
       }
     }
 
-    // await insertRowsAtTop(
-    //   process.env.SHEETID,
-    //   '904805158',
-    //   arrDataForSheet?.length,
-    // );
-    // await writeToSheet(
-    //   process.env.SHEETID,
-    //   '255CHECK-IN/OUT',
-    //   'A1',
-    //   arrDataForSheet,
-    // );
+    await insertRowsAtTop(
+      process.env.SHEETID,
+      '904805158',
+      arrDataForSheet?.length,
+    );
+    await writeToSheet(
+      process.env.SHEETID,
+      '255CHECK-IN/OUT',
+      'A1',
+      arrDataForSheet,
+    );
     console.log(arrDataForSheet, 'arrDataForSheet');
 
     return [true];
