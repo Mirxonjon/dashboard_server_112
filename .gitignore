@@ -1,10 +1,10 @@
 # compiled output
+/src/utils/google.json
+/src/utils/key.json
 /dist
 /node_modules
 /.env
 /.env.example
-/src/utils/google.json
-/src/utils/key.json
 
 # Logs
 logs
