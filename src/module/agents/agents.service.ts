@@ -2478,20 +2478,20 @@ export class AgentsService {
     }
   }
 
-  // @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_MINUTE)
   async controlOperator() {
     const atDate = new Date();
 
     const theCurrentHour = atDate.getHours();
     const theCurrentMinut = atDate.getMinutes();
     const RequestTimeMinutes = [1, 4, 10, 30];
-    // const uzbekistanTime = new Date(atDate.getTime() + 5 * 60 * 60 * 1000);
-    // console.log(theCurrentHour, theCurrentMinut, atDate, uzbekistanTime);
-    const controlday = await ControlAgentGraphSendSheet(
-      '09-18',
-      theCurrentHour,
-      this.#_cache,
-    );
+    const uzbekistanTime = new Date(atDate.getTime() + 5 * 60 * 60 * 1000);
+    console.log(theCurrentHour, theCurrentMinut, atDate, uzbekistanTime);
+    // const controlday = await ControlAgentGraphSendSheet(
+    //   '09-18',
+    //   theCurrentHour,
+    //   this.#_cache,
+    // );
 
     if (RequestTimeMinutes.includes(theCurrentMinut)) {
       if (theCurrentHour == 7) {
@@ -2557,6 +2557,8 @@ export class AgentsService {
         const allDataDay = Promise.all(controlday);
       }
       if (theCurrentHour == 17) {
+        console.log('17');
+        
         const controlday = await ControlAgentGraphSendSheet(
           '17-02',
           theCurrentHour,
