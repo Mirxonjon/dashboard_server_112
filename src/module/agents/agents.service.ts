@@ -2482,14 +2482,16 @@ export class AgentsService {
   async controlOperator() {
     const atDate = new Date();
 
-    const theCurrentHour = atDate.getHours();
-    const theCurrentMinut = atDate.getMinutes();
     const RequestTimeMinutes = [1, 4, 10, 30];
     const uzbekistanTime = new Date(atDate.getTime() + 5 * 60 * 60 * 1000);
+    const theCurrentHour = uzbekistanTime.getHours();
+    const theCurrentMinut = uzbekistanTime.getMinutes();
     console.log(theCurrentHour, theCurrentMinut, atDate, uzbekistanTime);
     // const controlday = await ControlAgentGraphSendSheet(
     //   '09-18',
     //   theCurrentHour,
+
+
     //   this.#_cache,
     // );
 
